@@ -1,6 +1,6 @@
-import {expect} from "vitest";
 import {Node} from "@chainsafe/persistent-merkle-tree";
-import {Type, CompositeType, fromHexString, toHexString} from "@chainsafe/ssz";
+import {CompositeType, Type, fromHexString, toHexString} from "@chainsafe/ssz";
+import {expect} from "vitest";
 
 type ValidTestCaseData = {
   root: string;
@@ -83,9 +83,11 @@ export function runValidSszTest(type: Type<unknown>, testData: ValidTestCaseData
     if (type.isBasic) {
       console.log("Chunk Basic", toHexString(type.serialize(testDataValue)));
     } else {
-      // biome-ignore lint/complexity/useLiteralKeys: The `getRoots` is a protected attribute
       const chunkBytes = (type as CompositeType<unknown, unknown, unknown>)["getChunkBytes"](testDataValue);
-      console.log("Chunk Bytes Composite", toHexString(chunkBytes));
+      console.log(
+        "chunkBytes Composite",
+        chunkBytes.map((root) => toHexString(root))
+      );
     }
   }
 

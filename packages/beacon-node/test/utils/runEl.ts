@@ -1,10 +1,10 @@
+import {spawn} from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
-import {spawn} from "node:child_process";
-import {sleep} from "@lodestar/utils";
 import {ChainConfig} from "@lodestar/config";
-import {Eth1Provider} from "../../src/index.js";
+import {sleep} from "@lodestar/utils";
 import {ZERO_HASH} from "../../src/constants/index.js";
+import {Eth1Provider} from "../../src/index.js";
 import {shell} from "../sim/shell.js";
 
 /* eslint-disable no-console */
@@ -179,8 +179,8 @@ async function startELProcess(args: {
   return tearDownCallBack;
 }
 
-async function waitForELOffline(ENGINE_PORT: string): Promise<void> {
-  const port = parseInt(ENGINE_PORT);
+async function waitForELOffline(enginePort: string): Promise<void> {
+  const port = parseInt(enginePort);
 
   for (let i = 0; i < 60; i++) {
     console.log("Waiting for EL offline...");

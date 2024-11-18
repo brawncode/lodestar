@@ -35,6 +35,7 @@ export class ValidatorNodeStructType extends ContainerNodeStructType<typeof Vali
     super(ValidatorType, {typeName: "Validator", jsonCase: "eth2"});
   }
 
+  // biome-ignore lint/style/useNamingConvention: Keep the naming consistent with ssz pattern
   value_serializeToBytes(
     {uint8Array: output, dataView}: ByteViews,
     offset: number,

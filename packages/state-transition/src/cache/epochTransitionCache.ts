@@ -1,32 +1,27 @@
-import {Epoch, RootHex, ValidatorIndex} from "@lodestar/types";
-import {intDiv, toRootHex} from "@lodestar/utils";
 import {
   EPOCHS_PER_SLASHINGS_VECTOR,
   FAR_FUTURE_EPOCH,
   ForkSeq,
-  SLOTS_PER_HISTORICAL_ROOT,
   MIN_ACTIVATION_BALANCE,
+  SLOTS_PER_HISTORICAL_ROOT,
 } from "@lodestar/params";
+import {Epoch, RootHex, ValidatorIndex} from "@lodestar/types";
+import {intDiv, toRootHex} from "@lodestar/utils";
 
+import {processPendingAttestations} from "../epoch/processPendingAttestations.js";
+import {CachedBeaconStateAllForks, CachedBeaconStateAltair, CachedBeaconStatePhase0} from "../index.js";
+import {computeBaseRewardPerIncrement} from "../util/altair.js";
 import {
-  hasMarkers,
-  FLAG_UNSLASHED,
-  FLAG_ELIGIBLE_ATTESTER,
-  FLAG_PREV_SOURCE_ATTESTER,
-  FLAG_PREV_TARGET_ATTESTER,
-  FLAG_PREV_HEAD_ATTESTER,
+  FLAG_CURR_HEAD_ATTESTER,
   FLAG_CURR_SOURCE_ATTESTER,
   FLAG_CURR_TARGET_ATTESTER,
-  FLAG_CURR_HEAD_ATTESTER,
+  FLAG_ELIGIBLE_ATTESTER,
+  FLAG_PREV_HEAD_ATTESTER,
+  FLAG_PREV_SOURCE_ATTESTER,
+  FLAG_PREV_TARGET_ATTESTER,
+  FLAG_UNSLASHED,
+  hasMarkers,
 } from "../util/attesterStatus.js";
-import {
-  CachedBeaconStateAllForks,
-  CachedBeaconStateAltair,
-  CachedBeaconStatePhase0,
-  hasCompoundingWithdrawalCredential,
-} from "../index.js";
-import {computeBaseRewardPerIncrement} from "../util/altair.js";
-import {processPendingAttestations} from "../epoch/processPendingAttestations.js";
 
 export type EpochTransitionCacheOpts = {
   /**
@@ -139,12 +134,6 @@ export interface EpochTransitionCache {
   flags: number[];
 
   isCompoundingValidatorArr: boolean[];
-
-  /**
-   * This is for electra only
-   * Validators that're switched to compounding during processPendingConsolidations(), not available in beforeProcessEpoch()
-   */
-  newCompoundingValidators?: Set<ValidatorIndex>;
 
   /**
    * balances array will be populated by processRewardsAndPenalties() and consumed by processEffectiveBalanceUpdates().
@@ -528,9 +517,7 @@ export function beforeProcessEpoch(
     proposerIndices,
     inclusionDelays,
     flags,
-    isCompoundingValidatorArr,
-    // will be assigned in processPendingConsolidations()
-    newCompoundingValidators: undefined,
+    validators,
     // Will be assigned in processRewardsAndPenalties()
     balances: undefined,
   };
