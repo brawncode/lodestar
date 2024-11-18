@@ -1,14 +1,14 @@
+import {byteArrayIntoHashObject} from "@chainsafe/as-sha256";
+import {HashComputationLevel, Node, digestNLevel, setNodesAtDepth} from "@chainsafe/persistent-merkle-tree";
 import {
-  ListCompositeType,
   ArrayCompositeTreeViewDUCache,
-  ListCompositeTreeViewDU,
   ByteViews,
   ContainerNodeStructTreeViewDU,
+  ListCompositeTreeViewDU,
+  ListCompositeType,
 } from "@chainsafe/ssz";
-import {HashComputationLevel, Node, digestNLevel, setNodesAtDepth} from "@chainsafe/persistent-merkle-tree";
-import {byteArrayIntoHashObject} from "@chainsafe/as-sha256";
-import {ValidatorNodeStructType, ValidatorType, validatorToChunkBytes} from "../validator.js";
 import {ValidatorIndex} from "../../types.js";
+import {ValidatorNodeStructType, ValidatorType, validatorToChunkBytes} from "../validator.js";
 
 /**
  * hashtree has a MAX_SIZE of 1024 bytes = 32 chunks

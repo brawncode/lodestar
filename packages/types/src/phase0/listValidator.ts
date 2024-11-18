@@ -1,5 +1,5 @@
-import {ListCompositeType, ListCompositeTreeViewDU} from "@chainsafe/ssz";
 import {Node} from "@chainsafe/persistent-merkle-tree";
+import {ListCompositeTreeViewDU, ListCompositeType} from "@chainsafe/ssz";
 import {ValidatorNodeStructType} from "./validator.js";
 import {ListValidatorTreeViewDU} from "./viewDU/listValidator.js";
 

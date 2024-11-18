@@ -9,7 +9,12 @@ import {Epoch, RootHex, ValidatorIndex} from "@lodestar/types";
 import {intDiv, toRootHex} from "@lodestar/utils";
 
 import {processPendingAttestations} from "../epoch/processPendingAttestations.js";
-import {CachedBeaconStateAllForks, CachedBeaconStateAltair, CachedBeaconStatePhase0} from "../index.js";
+import {
+  CachedBeaconStateAllForks,
+  CachedBeaconStateAltair,
+  CachedBeaconStatePhase0,
+  hasCompoundingWithdrawalCredential,
+} from "../index.js";
 import {computeBaseRewardPerIncrement} from "../util/altair.js";
 import {
   FLAG_CURR_HEAD_ATTESTER,
@@ -517,7 +522,7 @@ export function beforeProcessEpoch(
     proposerIndices,
     inclusionDelays,
     flags,
-    validators,
+    isCompoundingValidatorArr,
     // Will be assigned in processRewardsAndPenalties()
     balances: undefined,
   };

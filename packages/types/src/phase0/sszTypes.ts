@@ -28,8 +28,8 @@ import {
   VALIDATOR_REGISTRY_LIMIT,
 } from "@lodestar/params";
 import * as primitiveSsz from "../primitive/sszTypes.js";
-import {ValidatorNodeStruct} from "./validator.js";
 import {ListValidatorType} from "./listValidator.js";
+import {ValidatorNodeStruct} from "./validator.js";
 
 const {
   Bytes32,

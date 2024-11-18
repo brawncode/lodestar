@@ -1,3 +1,4 @@
+import {HashComputationGroup} from "@chainsafe/persistent-merkle-tree";
 import {
   CachedBeaconStateAllForks,
   DataAvailableStatus,
@@ -8,7 +9,6 @@ import {
 import {BeaconBlock, BlindedBeaconBlock, Gwei, Root} from "@lodestar/types";
 import {ZERO_HASH} from "../../constants/index.js";
 import {Metrics} from "../../metrics/index.js";
-import {HashComputationGroup} from "@chainsafe/persistent-merkle-tree";
 
 /**
  * Data in a BeaconBlock is bounded so we can use a single HashComputationGroup for all blocks

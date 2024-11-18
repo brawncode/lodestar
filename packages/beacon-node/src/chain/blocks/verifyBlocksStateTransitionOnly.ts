@@ -1,3 +1,4 @@
+import {HashComputationGroup} from "@chainsafe/persistent-merkle-tree";
 import {
   CachedBeaconStateAllForks,
   DataAvailableStatus,
@@ -12,7 +13,6 @@ import {nextEventLoop} from "../../util/eventLoop.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
 import {BlockProcessOpts} from "../options.js";
 import {BlockInput, ImportBlockOpts} from "./types.js";
-import {HashComputationGroup} from "@chainsafe/persistent-merkle-tree";
 
 /**
  * Data in a BeaconBlock is bounded so we can use a single HashComputationGroup for all blocks
