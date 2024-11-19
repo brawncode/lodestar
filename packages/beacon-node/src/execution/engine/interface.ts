@@ -88,6 +88,8 @@ export type PayloadAttributes = {
   suggestedFeeRecipient: string;
   withdrawals?: capella.Withdrawal[];
   parentBeaconBlockRoot?: Uint8Array;
+  targetBlobsPerBlock?: number;
+  maxBlobsperBlock?: number;
 };
 
 export type BlobsBundle = {
@@ -135,7 +137,8 @@ export interface IExecutionEngine {
     executionPayload: ExecutionPayload,
     versionedHashes?: VersionedHashes,
     parentBeaconBlockRoot?: Root,
-    executionRequests?: ExecutionRequests
+    executionRequests?: ExecutionRequests,
+    targetBlobsPerBlock?: number,
   ): Promise<ExecutePayloadResponse>;
 
   /**

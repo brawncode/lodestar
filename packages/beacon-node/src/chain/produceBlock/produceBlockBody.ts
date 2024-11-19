@@ -586,6 +586,11 @@ function preparePayloadAttributes(
     (payloadAttributes as deneb.SSEPayloadAttributes["payloadAttributes"]).parentBeaconBlockRoot = parentBlockRoot;
   }
 
+  if (ForkSeq[fork] >= ForkSeq.electra) {
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).targetBlobsPerBlock = 0;
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).maxBlobsPerBlock = 0;
+  }
+
   return payloadAttributes;
 }
 

@@ -201,7 +201,8 @@ export class ExecutionEngineHttp implements IExecutionEngine {
     executionPayload: ExecutionPayload,
     versionedHashes?: VersionedHashes,
     parentBlockRoot?: Root,
-    executionRequests?: ExecutionRequests
+    executionRequests?: ExecutionRequests,
+    maxBlobsPerBlock?: number,
   ): Promise<ExecutePayloadResponse> {
     const method =
       ForkSeq[fork] >= ForkSeq.electra
@@ -230,7 +231,11 @@ export class ExecutionEngineHttp implements IExecutionEngine {
         if (executionRequests === undefined) {
           throw Error(`executionRequests required in notifyNewPayload for fork=${fork}`);
         }
+        if (maxBlobsPerBlock === undefined) {
+          throw Error(`maxBlobsPerBlock required in notifyNewPayload for fork=${fork}`);
+        }
         const serializedExecutionRequests = serializeExecutionRequests(executionRequests);
+
         engineRequest = {
           method: "engine_newPayloadV4",
           params: [
@@ -238,6 +243,7 @@ export class ExecutionEngineHttp implements IExecutionEngine {
             serializedVersionedHashes,
             parentBeaconBlockRoot,
             serializedExecutionRequests,
+            numToQuantity(maxBlobsPerBlock),
           ],
           methodOpts: notifyNewPayloadOpts,
         };
@@ -341,11 +347,14 @@ export class ExecutionEngineHttp implements IExecutionEngine {
     // Once on capella, should this need to be permanently switched to v2 when payload attrs
     // not provided
     const method =
-      ForkSeq[fork] >= ForkSeq.deneb
+      ForkSeq[fork] >= ForkSeq.electra
+        ? "engine_forkchoiceUpdatedV4"
+        :
+        ForkSeq[fork] >= ForkSeq.deneb
         ? "engine_forkchoiceUpdatedV3"
-        : ForkSeq[fork] >= ForkSeq.capella
+          : ForkSeq[fork] >= ForkSeq.capella
           ? "engine_forkchoiceUpdatedV2"
-          : "engine_forkchoiceUpdatedV1";
+            : "engine_forkchoiceUpdatedV1";
     const payloadAttributesRpc = payloadAttributes ? serializePayloadAttributes(payloadAttributes) : undefined;
     // If we are just fcUing and not asking execution for payload, retry is not required
     // and we can move on, as the next fcU will be issued soon on the new slot

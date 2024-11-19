@@ -27,7 +27,7 @@ export type EngineApiRpcParamTypes = {
   engine_newPayloadV1: [ExecutionPayloadRpc];
   engine_newPayloadV2: [ExecutionPayloadRpc];
   engine_newPayloadV3: [ExecutionPayloadRpc, VersionedHashesRpc, DATA];
-  engine_newPayloadV4: [ExecutionPayloadRpc, VersionedHashesRpc, DATA, ExecutionRequestsRpc];
+  engine_newPayloadV4: [ExecutionPayloadRpc, VersionedHashesRpc, DATA, ExecutionRequestsRpc, QUANTITY];
   /**
    * 1. Object - Payload validity status with respect to the consensus rules:
    *   - blockHash: DATA, 32 Bytes - block hash value of the payload
@@ -42,6 +42,10 @@ export type EngineApiRpcParamTypes = {
     payloadAttributes?: PayloadAttributesRpc,
   ];
   engine_forkchoiceUpdatedV3: [
+    forkChoiceData: {headBlockHash: DATA; safeBlockHash: DATA; finalizedBlockHash: DATA},
+    payloadAttributes?: PayloadAttributesRpc,
+  ];
+  engine_forkchoiceUpdatedV4: [
     forkChoiceData: {headBlockHash: DATA; safeBlockHash: DATA; finalizedBlockHash: DATA},
     payloadAttributes?: PayloadAttributesRpc,
   ];
@@ -96,6 +100,10 @@ export type EngineApiRpcReturnTypes = {
     payloadId: QUANTITY | null;
   };
   engine_forkchoiceUpdatedV3: {
+    payloadStatus: PayloadStatus;
+    payloadId: QUANTITY | null;
+  };
+  engine_forkchoiceUpdatedV4: {
     payloadStatus: PayloadStatus;
     payloadId: QUANTITY | null;
   };
@@ -155,6 +163,7 @@ export type ExecutionPayloadRpc = {
   blobGasUsed?: QUANTITY; // DENEB
   excessBlobGas?: QUANTITY; // DENEB
   parentBeaconBlockRoot?: QUANTITY; // DENEB
+  targetBlobsPerBlock?: QUANTITY; // ELECTRA
 };
 
 export type WithdrawalRpc = {
@@ -193,6 +202,9 @@ export type PayloadAttributesRpc = {
   withdrawals?: WithdrawalRpc[];
   /** DATA, 32 Bytes - value for the parentBeaconBlockRoot to be used for building block */
   parentBeaconBlockRoot?: DATA;
+  // TODO
+  targetBlobsPerBlock?: QUANTITY;
+  maxBlobsPerBlock?: QUANTITY;
 };
 
 export type ClientVersionRpc = {
@@ -348,6 +360,8 @@ export function serializePayloadAttributes(data: PayloadAttributes): PayloadAttr
     suggestedFeeRecipient: data.suggestedFeeRecipient,
     withdrawals: data.withdrawals?.map(serializeWithdrawal),
     parentBeaconBlockRoot: data.parentBeaconBlockRoot ? bytesToData(data.parentBeaconBlockRoot) : undefined,
+    targetBlobsPerBlock: data.targetBlobsPerBlock ? numToQuantity(data.targetBlobsPerBlock) : undefined,
+    maxBlobsPerBlock: data.maxBlobsperBlock ? numToQuantity(data.maxBlobsperBlock) : undefined,
   };
 }
 
@@ -364,6 +378,8 @@ export function deserializePayloadAttributes(data: PayloadAttributesRpc): Payloa
     suggestedFeeRecipient: data.suggestedFeeRecipient,
     withdrawals: data.withdrawals?.map((withdrawal) => deserializeWithdrawal(withdrawal)),
     parentBeaconBlockRoot: data.parentBeaconBlockRoot ? dataToBytes(data.parentBeaconBlockRoot, 32) : undefined,
+    targetBlobsPerBlock: data.targetBlobsPerBlock ? quantityToNum(data.targetBlobsPerBlock) : undefined,
+    maxBlobsperBlock: data.maxBlobsPerBlock ? quantityToNum(data.maxBlobsPerBlock) : undefined,
   };
 }
 

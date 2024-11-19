@@ -392,8 +392,9 @@ export const LightClientStore = new ContainerType(
 // PayloadAttributes primarily for SSE event
 export const PayloadAttributes = new ContainerType(
   {
-    ...capellaSsz.PayloadAttributes.fields,
-    parentBeaconBlockRoot: Root,
+    ...denebSsz.PayloadAttributes.fields,
+    targetBlobsPerBlock: UintNum64,
+    maxBlobsPerBlock: UintNum64,
   },
   {typeName: "PayloadAttributes", jsonCase: "eth2"}
 );
