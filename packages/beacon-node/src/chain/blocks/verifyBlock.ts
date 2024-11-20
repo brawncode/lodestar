@@ -22,6 +22,7 @@ import {SegmentExecStatus, verifyBlocksExecutionPayload} from "./verifyBlocksExe
 import {verifyBlocksSignatures} from "./verifyBlocksSignatures.js";
 import {verifyBlocksStateTransitionOnly} from "./verifyBlocksStateTransitionOnly.js";
 import {writeBlockInputToDb} from "./writeBlockInputToDb.js";
+import { GIRAFFE_BANNER } from "./utils/giraffeBanner.js";
 
 /**
  * Verifies 1 or more blocks are fully valid; from a linear sequence of blocks.
@@ -155,6 +156,11 @@ export async function verifyBlocksInEpoch(
           case ForkName.deneb:
             this.logger.info(DENEB_BLOWFISH_BANNER);
             this.logger.info("Activating blobs", {epoch: this.config.DENEB_FORK_EPOCH});
+            break;
+          
+          case ForkName.electra:
+            this.logger.info(GIRAFFE_BANNER);
+            this.logger.info("Activating maxEB", {epoch: this.config.ELECTRA_FORK_EPOCH});
             break;
 
           default:
