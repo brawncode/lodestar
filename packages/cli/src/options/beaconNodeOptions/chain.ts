@@ -33,6 +33,8 @@ export type ChainArgs = {
   "chain.nHistoricalStatesFileDataStore"?: boolean;
   "chain.maxBlockStates"?: number;
   "chain.maxCPStateEpochsInMemory"?: number;
+  "chain.targetBlobsPerBlock"?: number;
+  "chain.maxBlobsPerBlock"?: number;
 };
 
 export function parseArgs(args: ChainArgs): IBeaconNodeOptions["chain"] {
@@ -68,6 +70,8 @@ export function parseArgs(args: ChainArgs): IBeaconNodeOptions["chain"] {
       args["chain.nHistoricalStatesFileDataStore"] ?? defaultOptions.chain.nHistoricalStatesFileDataStore,
     maxBlockStates: args["chain.maxBlockStates"] ?? defaultOptions.chain.maxBlockStates,
     maxCPStateEpochsInMemory: args["chain.maxCPStateEpochsInMemory"] ?? defaultOptions.chain.maxCPStateEpochsInMemory,
+    targetBlobsPerBlock: args["chain.targetBlobsPerBlock"] ?? defaultOptions.chain.targetBlobsPerBlock,
+    maxBlobsPerBlock: args["chain.maxBlobsPerBlock"] ?? defaultOptions.chain.maxBlobsPerBlock,
   };
 }
 
@@ -282,6 +286,22 @@ Will double processing times. Use only for debugging purposes.",
     description: "Max epochs to cache checkpoint states in memory, used for PersistentCheckpointStateCache",
     type: "number",
     default: defaultOptions.chain.maxCPStateEpochsInMemory,
+    group: "chain",
+  },
+
+  "chain.targetBlobsPerBlock": {
+    hidden: true,
+    description: "Target blobs per block per EIP-7742",
+    type: "number",
+    default: defaultOptions.chain.targetBlobsPerBlock,
+    group: "chain",
+  },
+
+  "chain.maxBlobsPerBlock": {
+    hidden: true,
+    description: "Max blobs per block per EIP-7742",
+    type: "number",
+    default: defaultOptions.chain.maxBlobsPerBlock,
     group: "chain",
   },
 };

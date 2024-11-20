@@ -138,7 +138,7 @@ export interface IExecutionEngine {
     versionedHashes?: VersionedHashes,
     parentBeaconBlockRoot?: Root,
     executionRequests?: ExecutionRequests,
-    targetBlobsPerBlock?: number,
+    targetBlobsPerBlock?: number
   ): Promise<ExecutePayloadResponse>;
 
   /**
