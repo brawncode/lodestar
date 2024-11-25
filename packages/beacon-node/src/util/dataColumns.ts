@@ -5,6 +5,9 @@ import {ChainForkConfig} from "@lodestar/config";
 import {ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
 import {NodeId} from "../network/subnets/index.js";
+import {BlockInputCacheType} from "../chain/seenCache/types.js";
+import {CachedData, CachedDataColumns} from "../chain/blocks/types.js";
+import {ckzg} from "./kzg.js";
 
 export type CustodyConfig = {
   custodyColumnsIndex: Uint8Array;
@@ -82,4 +85,61 @@ export function getDataColumnSubnets(nodeId: NodeId, custodySubnetCount: number)
   }
 
   return subnetIds;
+}
+
+export function reconstructColumnMatrix(columnIndices: number[], columns: Uint8Array[][]): Uint8Array[] {
+  if (columnIndices.length !== columns.length) {
+    throw new Error("Invalid number of columnIndices or columns");
+  }
+  if (columns.length >= NUMBER_OF_COLUMNS / 2) {
+    throw new Error("Invalid matrix reconstruction. Insufficient columns");
+  }
+  const partialBlobs: Uint8Array[][] = Array.from(
+    {length: columns[0].length},
+    () => new Array<Uint8Array>(columns.length)
+  );
+  for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
+    const column = columns[columnIndex];
+    if (column.length !== columns[0].length) {
+      throw new Error("All columns must have the same number of cells when reconstructing matrix");
+    }
+    column.forEach((cell, blobIndex) => (partialBlobs[blobIndex][columnIndex] = cell));
+  }
+
+  const blobs: Uint8Array[][] = [];
+  const kzgProofs: Uint8Array[][] = [];
+  for (const partialBlob of partialBlobs) {
+    const [reconstructedBlob, reconstructedProofs] = ckzg.recoverCellsAndKzgProofs(columnIndices, partialBlob);
+    blobs.push(reconstructedBlob);
+    kzgProofs.push(reconstructedProofs);
+  }
+}
+
+export async function asyncReconstructColumnMatrix(cachedData: CachedData): Promise<Uint8Array[]> {
+  const {} = cachedData;
+  if (columnIndices.length !== columns.length) {
+    throw new Error("Invalid number of columnIndices or columns");
+  }
+  if (columns.length >= NUMBER_OF_COLUMNS / 2) {
+    throw new Error("Invalid matrix reconstruction. Insufficient columns");
+  }
+  const partialBlobs: Uint8Array[][] = Array.from(
+    {length: columns[0].length},
+    () => new Array<Uint8Array>(columns.length)
+  );
+  for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
+    const column = columns[columnIndex];
+    if (column.length !== columns[0].length) {
+      throw new Error("All columns must have the same number of cells when reconstructing matrix");
+    }
+    column.forEach((cell, blobIndex) => (partialBlobs[blobIndex][columnIndex] = cell));
+  }
+
+  const blobs: Uint8Array[][] = [];
+  const kzgProofs: Uint8Array[][] = [];
+  for (const partialBlob of partialBlobs) {
+    const [reconstructedBlob, reconstructedProofs] = ckzg.recoverCellsAndKzgProofs(columnIndices, partialBlob);
+    blobs.push(reconstructedBlob);
+    kzgProofs.push(reconstructedProofs);
+  }
 }

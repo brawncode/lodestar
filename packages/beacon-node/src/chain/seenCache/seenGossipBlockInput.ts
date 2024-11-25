@@ -1,7 +1,7 @@
 import {toHexString} from "@chainsafe/ssz";
-import {deneb, RootHex, SignedBeaconBlock, ssz, peerdas} from "@lodestar/types";
+import {deneb, RootHex, ssz} from "@lodestar/types";
 import {ChainForkConfig} from "@lodestar/config";
-import {pruneSetToMax} from "@lodestar/utils";
+import {Logger, pruneSetToMax} from "@lodestar/utils";
 import {BLOBSIDECAR_FIXED_SIZE, isForkBlobs, ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
 
 import {
@@ -19,32 +19,8 @@ import {
   BlockInputDataDataColumns,
 } from "../blocks/types.js";
 import {Metrics} from "../../metrics/index.js";
-import {CustodyConfig} from "../../util/dataColumns.js";
-
-export enum BlockInputAvailabilitySource {
-  GOSSIP = "gossip",
-  UNKNOWN_SYNC = "unknown_sync",
-}
-
-type GossipedBlockInput =
-  | {type: GossipedInputType.block; signedBlock: SignedBeaconBlock; blockBytes: Uint8Array | null}
-  | {type: GossipedInputType.blob; blobSidecar: deneb.BlobSidecar; blobBytes: Uint8Array | null}
-  | {
-      type: GossipedInputType.dataColumn;
-      dataColumnSidecar: peerdas.DataColumnSidecar;
-      dataColumnBytes: Uint8Array | null;
-    };
-
-type BlockInputCacheType = {
-  fork: ForkName;
-  block?: SignedBeaconBlock;
-  blockBytes?: Uint8Array | null;
-  cachedData?: CachedData;
-  // block promise and its callback cached for delayed resolution
-  blockInputPromise: Promise<BlockInput>;
-  resolveBlockInput: (blockInput: BlockInput) => void;
-};
-
+import {asyncReconstructColumnMatrix, CustodyConfig, reconstructColumnMatrix} from "../../util/dataColumns.js";
+import {GossipedBlockInput, BlockInputAvailabilitySource, BlockInputCacheType} from "./types.js";
 const MAX_GOSSIPINPUT_CACHE = 5;
 
 /**
@@ -60,7 +36,10 @@ const MAX_GOSSIPINPUT_CACHE = 5;
  */
 export class SeenGossipBlockInput {
   private blockInputCache = new Map<RootHex, BlockInputCacheType>();
-  constructor(public custodyConfig: CustodyConfig) {}
+  constructor(
+    public custodyConfig: CustodyConfig,
+    private logger: Logger | null = null
+  ) {}
   globalCacheId = 0;
 
   prune(): void {
@@ -138,8 +117,24 @@ export class SeenGossipBlockInput {
         // easily splice out the unsigned message as blob is a fixed length type
         dataColumnBytes: dataColumnBytes?.slice(0, dataColumnBytes.length) ?? null,
       });
+
+      const numCachedColumns = blockCache.cachedData?.dataColumnsCache.size;
+      if (
+        numCachedColumns >= NUMBER_OF_COLUMNS / 2 &&
+        numCachedColumns < NUMBER_OF_COLUMNS &&
+        !blockCache.cachedData.reconstructionQueued
+      ) {
+        // this should run async on a tokio (or libuv) thread and not stop the flow of any validations.  Will likely
+        // complete on next event loop and will update blockCache with reconstructed columns
+        asyncReconstructColumnMatrix(blockCache.cachedData.dataColumnsCache)
+          .then((updatedBlockCache) => {
+            // TODO: update this to not overwrite data that came after initial request
+            this.blockInputCache.set(blockHex, updatedBlockCache);
+          })
+          .catch((err) => this.logger?.error("Error reconstructing column matrix", {blockRoot, numCachedColumns}, err));
+      }
     } else {
-      // somehow helps resolve typescript that all types have been exausted
+      // somehow helps resolve typescript that all types have been exhausted
       throw Error("Invalid gossipedInput type");
     }
 

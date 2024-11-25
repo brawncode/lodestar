@@ -21,6 +21,23 @@ export enum BlockSource {
   byRoot = "req_resp_by_root",
 }
 
+export enum GossipedInputType {
+  block = "block",
+  blob = "blob",
+  dataColumn = "dataColumn",
+}
+
+type Availability<T> = {availabilityPromise: Promise<T>; resolveAvailability: (data: T) => void};
+
+export interface CachedDataItem {
+  cacheId: number;
+}
+
+/**
+ *
+ * Deneb Blob Types
+ *
+ */
 /** Enum to represent where blobs come from */
 export enum BlobsSource {
   gossip = "gossip",
@@ -29,46 +46,63 @@ export enum BlobsSource {
   byRoot = "req_resp_by_root",
 }
 
+interface ForkBlobsInfo {
+  fork: ForkName.deneb;
+}
+interface CachedBlobData {
+  blobSidecar: deneb.BlobSidecar;
+  blobBytes: Uint8Array | null;
+}
+export type BlobsCacheMap = Map<number, CachedBlobData>;
+export type BlockInputDataBlobs = ForkBlobsInfo & BlobsData;
+interface CachedBlobs extends Availability<BlockInputDataBlobs> {
+  blobsCache: BlobsCacheMap;
+}
+interface BlobsData {
+  blobs: deneb.BlobSidecars;
+  blobsBytes: (Uint8Array | null)[];
+  blobsSource: BlobsSource;
+}
+export type CachedBlobData = CachedDataItem & ForkBlobsInfo & CachedBlobs;
+
+/**
+ *
+ * PeerDAS Column Types
+ *
+ */
 export enum DataColumnsSource {
   gossip = "gossip",
   api = "api",
   byRange = "req_resp_by_range",
   byRoot = "req_resp_by_root",
 }
-
-export enum GossipedInputType {
-  block = "block",
-  blob = "blob",
-  dataColumn = "dataColumn",
+interface ForkDataColumnsInfo {
+  fork: ForkName.peerdas;
 }
-
-export type BlobsCacheMap = Map<number, {blobSidecar: deneb.BlobSidecar; blobBytes: Uint8Array | null}>;
-export type DataColumnsCacheMap = Map<
-  number,
-  {dataColumnSidecar: peerdas.DataColumnSidecar; dataColumnBytes: Uint8Array | null}
->;
-
-type ForkBlobsInfo = {fork: ForkName.deneb};
-type BlobsData = {blobs: deneb.BlobSidecars; blobsBytes: (Uint8Array | null)[]; blobsSource: BlobsSource};
-export type BlockInputDataBlobs = ForkBlobsInfo & BlobsData;
-
-type ForkDataColumnsInfo = {fork: ForkName.peerdas};
-type DataColumnsData = {
+interface DataColumnsData {
   // marker of that columns are to be custodied
   dataColumns: peerdas.DataColumnSidecars;
   dataColumnsBytes: (Uint8Array | null)[];
   dataColumnsSource: DataColumnsSource;
-};
+}
+export type DataColumnsCacheMap = Map<
+  number,
+  {dataColumnSidecar: peerdas.DataColumnSidecar; dataColumnBytes: Uint8Array | null}
+>;
+interface CachedDataColumns extends Availability<BlockInputDataDataColumns> {
+  dataColumnsCache: DataColumnsCacheMap;
+  reconstructionQueued: boolean;
+}
 export type BlockInputDataDataColumns = ForkDataColumnsInfo & DataColumnsData;
-export type BlockInputData = BlockInputDataBlobs | BlockInputDataDataColumns;
+export type CachedColumnData = CachedDataItem & ForkDataColumnsInfo & CachedDataColumns;
 
-type Availability<T> = {availabilityPromise: Promise<T>; resolveAvailability: (data: T) => void};
-type CachedBlobs = {blobsCache: BlobsCacheMap} & Availability<BlockInputDataBlobs>;
-type CachedDataColumns = {dataColumnsCache: DataColumnsCacheMap} & Availability<BlockInputDataDataColumns>;
-export type CachedData = {cacheId: number} & (
-  | (ForkBlobsInfo & CachedBlobs)
-  | (ForkDataColumnsInfo & CachedDataColumns)
-);
+/**
+ *
+ * Post-Deneb Shared Data Types
+ *
+ */
+export type BlockInputData = BlockInputDataBlobs | BlockInputDataDataColumns;
+export type CachedData = CachedBlobData | CachedColumnData;
 
 export type BlockInput = {block: SignedBeaconBlock; source: BlockSource; blockBytes: Uint8Array | null} & (
   | {type: BlockInputType.preData | BlockInputType.outOfRangeData}
