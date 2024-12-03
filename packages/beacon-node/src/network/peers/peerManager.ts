@@ -19,7 +19,7 @@ import {NetworkCoreMetrics} from "../core/metrics.js";
 import {LodestarDiscv5Opts} from "../discv5/types.js";
 import {getDataColumnSubnets, getDataColumns} from "../../util/dataColumns.js";
 import {PeerDiscovery, SubnetDiscvQueryMs} from "./discover.js";
-import {PeersData, PeerData} from "./peersData.js";
+import {PeersData, PeerData, ColumnSubnetId} from "./peersData.js";
 import {getKnownClientFromAgentVersion, ClientKind} from "./client.js";
 import {
   getConnectedPeerIds,
@@ -82,9 +82,6 @@ export type PeerManagerOpts = {
    * If set to true, connect to Discv5 bootnodes. If not set or false, do not connect
    */
   connectToDiscv5Bootnodes?: boolean;
-  // experimental flags for debugging
-  onlyConnectToBiggerDataNodes?: boolean;
-  onlyConnectToMinimalCustodyOverlapNodes?: boolean;
 };
 
 /**
@@ -132,7 +129,7 @@ enum RelevantPeerStatus {
  */
 export class PeerManager {
   private nodeId: NodeId;
-  private sampleSubnets: number[];
+  private sampleSubnets: ColumnSubnetId[];
   private readonly libp2p: Libp2p;
   private readonly logger: LoggerNode;
   private readonly metrics: NetworkCoreMetrics | null;
@@ -206,8 +203,6 @@ export class PeerManager {
           discv5FirstQueryDelayMs: opts.discv5FirstQueryDelayMs ?? DEFAULT_DISCV5_FIRST_QUERY_DELAY_MS,
           discv5: opts.discv5,
           connectToDiscv5Bootnodes: opts.connectToDiscv5Bootnodes,
-          onlyConnectToBiggerDataNodes: opts.onlyConnectToBiggerDataNodes,
-          onlyConnectToMinimalCustodyOverlapNodes: opts.onlyConnectToMinimalCustodyOverlapNodes,
         })
       : null;
 
@@ -332,18 +327,24 @@ export class PeerManager {
     });
     if (peerData) {
       const oldMetadata = peerData.metadata;
+      const csc = (metadata as Partial<peerdas.Metadata>).csc ?? this.config.CUSTODY_REQUIREMENT;
+      const nodeId = peerData?.nodeId ?? computeNodeId(peer);
+      const custodySubnets = csc !== oldMetadata?.csc ? getDataColumnSubnets(nodeId, csc) : oldMetadata?.custodySubnets;
       peerData.metadata = {
         seqNumber: metadata.seqNumber,
         attnets: metadata.attnets,
         syncnets: (metadata as Partial<peerdas.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
         csc:
           (metadata as Partial<peerdas.Metadata>).csc ??
-          this.discovery?.["peerIdToCustodySubnetCount"].get(peer.toString()) ??
+          // TODO: from peerDAS, all metadata should have csc field
+          // may consider to disconnect them to have more qualified peers
           this.config.CUSTODY_REQUIREMENT,
+        custodySubnets,
       };
-      if (oldMetadata === null || oldMetadata.csc !== peerData.metadata.csc) {
-        void this.requestStatus(peer, this.statusCache.get());
-      }
+      // TODO: why request status again?
+      // if (oldMetadata === null || oldMetadata.csc !== peerData.metadata.csc) {
+      //   void this.requestStatus(peer, this.statusCache.get());
+      // }
     }
   }
 
@@ -420,7 +421,6 @@ export class PeerManager {
         0
       );
       const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
-      const hasMinCustodyMatchingColumns = matchingSubnetsNum >= this.config.CUSTODY_REQUIREMENT;
       const clientAgent = peerData?.agentClient ?? ClientKind.Unknown;
 
       this.logger.warn(`onStatus ${custodySubnetCount == undefined ? "undefined custody count assuming 4" : ""}`, {
@@ -433,22 +433,6 @@ export class PeerManager {
         mySampleSubnets: this.sampleSubnets.join(" "),
         clientAgent,
       });
-
-      if (this.opts.onlyConnectToBiggerDataNodes && !hasAllColumns) {
-        this.logger.debug(`ignoring peercontected onlyConnectToBiggerDataNodes=true hasAllColumns=${hasAllColumns}`, {
-          nodeId: toHexString(nodeId),
-          peerId: peer.toString(),
-        });
-        return;
-      }
-
-      if (this.opts.onlyConnectToMinimalCustodyOverlapNodes && !hasMinCustodyMatchingColumns) {
-        this.logger.debug(
-          `ignoring peercontected onlyConnectToMinimalCustodyOverlapNodes=true hasMinCustodyMatchingColumns=${hasMinCustodyMatchingColumns}`,
-          {nodeId: toHexString(nodeId), peerId: peer.toString()}
-        );
-        return;
-      }
 
       // coule be optimized by directly using the previously calculated subnet
       const dataColumns = getDataColumns(nodeId, peerCustodySubnetCount);
@@ -530,7 +514,7 @@ export class PeerManager {
       }
     }
 
-    const {peersToDisconnect, peersToConnect, attnetQueries, syncnetQueries} = prioritizePeers(
+    const {peersToDisconnect, peersToConnect, attnetQueries, syncnetQueries, columnSubnetQueries} = prioritizePeers(
       connectedHealthyPeers.map((peer) => {
         const peerData = this.connectedPeers.get(peer.toString());
         return {
@@ -538,12 +522,14 @@ export class PeerManager {
           direction: peerData?.direction ?? null,
           attnets: peerData?.metadata?.attnets ?? null,
           syncnets: peerData?.metadata?.syncnets ?? null,
+          custodySubnets: peerData?.metadata?.custodySubnets ?? null,
           score: this.peerRpcScores.getScore(peer),
         };
       }),
       // Collect subnets which we need peers for in the current slot
       this.attnetsService.getActiveSubnets(),
       this.syncnetsService.getActiveSubnets(),
+      this.sampleSubnets,
       this.opts
     );
 
@@ -580,7 +566,7 @@ export class PeerManager {
     if (this.discovery) {
       try {
         this.metrics?.peersRequestedToConnect.inc(peersToConnect);
-        this.discovery.discoverPeers(peersToConnect, queriesMerged);
+        this.discovery.discoverPeers(peersToConnect, columnSubnetQueries, queriesMerged);
       } catch (e) {
         this.logger.error("Error on discoverPeers", {}, e as Error);
       }
@@ -785,6 +771,7 @@ export class PeerManager {
 
         // TODO: Consider optimizing by doing observe in batch
         metrics.peerLongLivedAttnets.observe(attnets ? attnets.getTrueBitIndexes().length : 0);
+        metrics.peerColumnSubnetCount.observe(peerData?.metadata?.csc ?? 0);
         metrics.peerScoreByClient.observe({client}, this.peerRpcScores.getScore(peerId));
         metrics.peerGossipScoreByClient.observe({client}, this.peerRpcScores.getGossipScore(peerId));
         metrics.peerConnectionLength.observe((now - openCnx.timeline.open) / 1000);

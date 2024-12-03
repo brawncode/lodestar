@@ -5,6 +5,7 @@ import {ATTESTATION_SUBNET_COUNT, SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/p
 import {MapDef} from "@lodestar/utils";
 import {shuffle} from "../../../util/shuffle.js";
 import {sortBy} from "../../../util/sortBy.js";
+import {ColumnSubnetId} from "../peersData.js";
 import {RequestedSubnet} from "./subnetMap.js";
 
 /** Target number of peers we'd like to have connected to a given long-lived subnet */
@@ -39,12 +40,17 @@ const attnetsZero = BitArray.fromBitLen(ATTESTATION_SUBNET_COUNT);
 const syncnetsZero = BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT);
 
 type SubnetDiscvQuery = {subnet: number; toSlot: number; maxPeersToDiscover: number};
+/**
+ * A map of column subnet id to maxPeersToDiscover
+ */
+type ColumnSubnetQueries = Map<ColumnSubnetId, number>;
 
 type PeerInfo = {
   id: PeerId;
   direction: Direction | null;
   attnets: phase0.AttestationSubnets;
   syncnets: altair.SyncSubnets;
+  custodySubnets: ColumnSubnetId[];
   attnetsTrueBitIndices: number[];
   syncnetsTrueBitIndices: number[];
   score: number;
@@ -77,16 +83,19 @@ export function prioritizePeers(
     direction: Direction | null;
     attnets: phase0.AttestationSubnets | null;
     syncnets: altair.SyncSubnets | null;
+    custodySubnets: ColumnSubnetId[] | null;
     score: number;
   }[],
   activeAttnets: RequestedSubnet[],
   activeSyncnets: RequestedSubnet[],
+  sampleSubnets: ColumnSubnetId[],
   opts: PrioritizePeersOpts
 ): {
   peersToConnect: number;
   peersToDisconnect: Map<ExcessPeerDisconnectReason, PeerId[]>;
   attnetQueries: SubnetDiscvQuery[];
   syncnetQueries: SubnetDiscvQuery[];
+  columnSubnetQueries: ColumnSubnetQueries;
 } {
   const {targetPeers, maxPeers} = opts;
 
@@ -100,16 +109,18 @@ export function prioritizePeers(
       direction: peer.direction,
       attnets: peer.attnets ?? attnetsZero,
       syncnets: peer.syncnets ?? syncnetsZero,
+      custodySubnets: peer.custodySubnets ?? [],
       attnetsTrueBitIndices: peer.attnets?.getTrueBitIndexes() ?? [],
       syncnetsTrueBitIndices: peer.syncnets?.getTrueBitIndexes() ?? [],
       score: peer.score,
     })
   );
 
-  const {attnetQueries, syncnetQueries, dutiesByPeer} = requestAttnetPeers(
+  const {attnetQueries, syncnetQueries, columnSubnetQueries, dutiesByPeer} = requestAttnetPeers(
     connectedPeers,
     activeAttnets,
     activeSyncnets,
+    sampleSubnets,
     opts
   );
 
@@ -134,20 +145,23 @@ export function prioritizePeers(
     peersToDisconnect,
     attnetQueries,
     syncnetQueries,
+    columnSubnetQueries,
   };
 }
 
 /**
- * If more peers are needed in attnets and syncnets, create SubnetDiscvQuery for each subnet
+ * If more peers are needed in attnets and syncnets and column subnets, create SubnetDiscvQuery for each subnet
  */
 function requestAttnetPeers(
   connectedPeers: PeerInfo[],
   activeAttnets: RequestedSubnet[],
   activeSyncnets: RequestedSubnet[],
+  samplingSubnets: ColumnSubnetId[],
   opts: PrioritizePeersOpts
 ): {
   attnetQueries: SubnetDiscvQuery[];
   syncnetQueries: SubnetDiscvQuery[];
+  columnSubnetQueries: ColumnSubnetQueries;
   dutiesByPeer: Map<PeerInfo, number>;
 } {
   const {targetSubnetPeers = TARGET_SUBNET_PEERS} = opts;
@@ -209,7 +223,25 @@ function requestAttnetPeers(
     }
   }
 
-  return {attnetQueries, syncnetQueries, dutiesByPeer};
+  // column subnets, do we need queries for more peers
+  const columnSubnetQueries: ColumnSubnetQueries = new Map();
+  const peersPerColumnSubnet = new Map<ColumnSubnetId, number>();
+  for (const peer of connectedPeers) {
+    const {custodySubnets} = peer;
+    for (const columnSubnet of custodySubnets) {
+      peersPerColumnSubnet.set(columnSubnet, 1 + (peersPerColumnSubnet.get(columnSubnet) ?? 0));
+    }
+  }
+
+  for (const columnSubnet of samplingSubnets) {
+    const peersInColumnSubnet = peersPerColumnSubnet.get(columnSubnet) ?? 0;
+    if (peersInColumnSubnet < targetSubnetPeers) {
+      // We need more peers
+      columnSubnetQueries.set(columnSubnet, targetSubnetPeers - peersInColumnSubnet);
+    }
+  }
+
+  return {attnetQueries, syncnetQueries, columnSubnetQueries, dutiesByPeer};
 }
 
 /**

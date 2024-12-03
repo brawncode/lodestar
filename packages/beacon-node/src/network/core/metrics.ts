@@ -1,6 +1,6 @@
 import {RegistryMetricCreator} from "../../metrics/utils/registryMetricCreator.js";
 import {SubnetType} from "../metadata.js";
-import {DiscoveredPeerStatus} from "../peers/discover.js";
+import {DiscoveredPeerStatus, NotDialReason} from "../peers/discover.js";
 import {SubnetSource} from "../subnets/attnetsService.js";
 
 export type NetworkCoreMetrics = ReturnType<typeof createNetworkCoreMetrics>;
@@ -30,6 +30,11 @@ export function createNetworkCoreMetrics(register: RegistryMetricCreator) {
       name: "lodestar_peer_long_lived_attnets_count",
       help: "Histogram of current count of long lived attnets of connected peers",
       buckets: [0, 4, 16, 32, 64],
+    }),
+    peerColumnSubnetCount: register.histogram({
+      name: "lodestar_peer_column_subnet_count",
+      help: "Histogram of current count of column subnets of connected peers",
+      buckets: [0, 4, 8, 16, 32, 64, 128],
     }),
     peerScoreByClient: register.histogram<{client: string}>({
       name: "lodestar_app_peer_score",
@@ -127,10 +132,18 @@ export function createNetworkCoreMetrics(register: RegistryMetricCreator) {
         help: "Current peers to connect count from discoverPeers requests",
         labelNames: ["type"],
       }),
+      subnetColumnPeersToConnect: register.gauge({
+        name: "lodestar_discovery_subnet_column_peers_to_connect",
+        help: "Current peers to connect count from discoverPeers requests",
+      }),
       subnetsToConnect: register.gauge<{type: SubnetType}>({
         name: "lodestar_discovery_subnets_to_connect",
         help: "Current subnets to connect count from discoverPeers requests",
         labelNames: ["type"],
+      }),
+      columnSubnetsToConnect: register.gauge({
+        name: "lodestar_discovery_column_subnets_to_connect",
+        help: "Current column subnets to connect count from discoverPeers requests",
       }),
       cachedENRsSize: register.gauge({
         name: "lodestar_discovery_cached_enrs_size",
@@ -154,6 +167,11 @@ export function createNetworkCoreMetrics(register: RegistryMetricCreator) {
         name: "lodestar_discovery_discovered_status_total_count",
         help: "Total count of status results of PeerDiscovery.onDiscovered() function",
         labelNames: ["status"],
+      }),
+      notDialReason: register.gauge<{reason: NotDialReason}>({
+        name: "lodestar_discovery_not_dial_reason_total_count",
+        help: "Total count of not dial reasons",
+        labelNames: ["reason"],
       }),
       dialAttempts: register.gauge({
         name: "lodestar_discovery_total_dial_attempts",
