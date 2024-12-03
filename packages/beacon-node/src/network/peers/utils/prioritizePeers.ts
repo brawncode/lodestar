@@ -57,12 +57,13 @@ type PeerInfo = {
   score: number;
 };
 
-export interface PrioritizePeersOpts {
+export type PrioritizePeersOpts = {
   targetPeers: number;
   maxPeers: number;
+  targetColumnSubnetPeers: number;
   outboundPeersRatio?: number;
   targetSubnetPeers?: number;
-}
+};
 
 export enum ExcessPeerDisconnectReason {
   LOW_SCORE = "low_score",
@@ -118,7 +119,7 @@ export function prioritizePeers(
     })
   );
 
-  const {attnetQueries, syncnetQueries, columnSubnetQueries, dutiesByPeer} = requestAttnetPeers(
+  const {attnetQueries, syncnetQueries, columnSubnetQueries, dutiesByPeer} = requestSubnetPeers(
     connectedPeers,
     activeAttnets,
     activeSyncnets,
@@ -155,7 +156,7 @@ export function prioritizePeers(
 /**
  * If more peers are needed in attnets and syncnets and column subnets, create SubnetDiscvQuery for each subnet
  */
-function requestAttnetPeers(
+function requestSubnetPeers(
   connectedPeers: PeerInfo[],
   activeAttnets: RequestedSubnet[],
   activeSyncnets: RequestedSubnet[],
@@ -231,6 +232,7 @@ function requestAttnetPeers(
   }
 
   // column subnets, do we need queries for more peers
+  const targetColumnSubnetPeers = opts.targetColumnSubnetPeers;
   const columnSubnetQueries: ColumnSubnetQueries = new Map();
   const peersPerColumnSubnet = new Map<ColumnSubnetId, number>();
   for (const peer of connectedPeers) {
@@ -242,9 +244,9 @@ function requestAttnetPeers(
 
   for (const columnSubnet of samplingSubnets) {
     const peersInColumnSubnet = peersPerColumnSubnet.get(columnSubnet) ?? 0;
-    if (peersInColumnSubnet < targetSubnetPeers) {
+    if (peersInColumnSubnet < targetColumnSubnetPeers) {
       // We need more peers
-      columnSubnetQueries.set(columnSubnet, targetSubnetPeers - peersInColumnSubnet);
+      columnSubnetQueries.set(columnSubnet, targetColumnSubnetPeers - peersInColumnSubnet);
     }
   }
 

@@ -27,6 +27,7 @@ import {
   assertPeerRelevance,
   prioritizePeers,
   renderIrrelevantPeerType,
+  PrioritizePeersOpts,
 } from "./utils/index.js";
 import {IPeerRpcScoreStore, PeerAction, PeerScoreStats, ScoreState, updateGossipsubScores} from "./score/index.js";
 
@@ -65,10 +66,6 @@ const ALLOWED_NEGATIVE_GOSSIPSUB_FACTOR = 0.1;
 // to terminal if it deviates significantly from the user's settings
 
 export type PeerManagerOpts = {
-  /** The target number of peers we would like to connect to. */
-  targetPeers: number;
-  /** The maximum number of peers we allow (exceptions for subnet peers) */
-  maxPeers: number;
   /**
    * Delay the 1st query after starting discv5
    * See https://github.com/ChainSafe/lodestar/issues/3423
@@ -82,7 +79,7 @@ export type PeerManagerOpts = {
    * If set to true, connect to Discv5 bootnodes. If not set or false, do not connect
    */
   connectToDiscv5Bootnodes?: boolean;
-};
+} & PrioritizePeersOpts;
 
 /**
  * ReqResp methods used only be PeerManager, so the main thread never has to call them

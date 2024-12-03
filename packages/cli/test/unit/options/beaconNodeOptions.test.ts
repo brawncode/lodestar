@@ -104,6 +104,7 @@ describe("options / beaconNodeOptions", () => {
       "network.maxGossipTopicConcurrency": 64,
       "network.useWorker": true,
       "network.maxYoungGenerationSizeMb": 152,
+      "network.targetColumnSubnetPeers": 12,
 
       "sync.isSingleNode": true,
       "sync.disableProcessAsChainSegment": true,
@@ -215,6 +216,7 @@ describe("options / beaconNodeOptions", () => {
         maxGossipTopicConcurrency: 64,
         useWorker: true,
         maxYoungGenerationSizeMb: 152,
+        targetColumnSubnetPeers: 12,
       },
       sync: {
         isSingleNode: true,

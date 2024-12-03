@@ -44,4 +44,6 @@ export const defaultNetworkOptions: NetworkOptions = {
   beaconAttestationBatchValidation: true,
   // This will enable the light client server by default
   disableLightClientServer: false,
+  // for PeerDAS, this is the same to TARGET_SUBNET_PEERS, should reavaluate after devnets
+  targetColumnSubnetPeers: 6,
 };
