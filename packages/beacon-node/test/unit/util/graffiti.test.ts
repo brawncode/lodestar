@@ -29,7 +29,7 @@ describe("Graffiti helper", () => {
   });
 
   describe("getDefaultGraffiti", () => {
-    const executionClientVersion = {code: ClientCode.BU, name: "Besu", version: "24.1.1", commit: "9b0e38fa"};
+    const executionClientVersion = {code: ClientCode.BU, name: "Besu", version: "24.1.1", commit: "0x9b0e38fa"};
     const consensusClientVersion = {
       code: ClientCode.LS,
       name: "Lodestar",
