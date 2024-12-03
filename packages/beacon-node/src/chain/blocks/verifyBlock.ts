@@ -15,6 +15,7 @@ import {BlockProcessOpts} from "../options.js";
 import {RegenCaller} from "../regen/index.js";
 import {BlockInput, BlockInputType, ImportBlockOpts} from "./types.js";
 import {DENEB_BLOWFISH_BANNER} from "./utils/blowfishBanner.js";
+import {GIRAFFE_BANNER} from "./utils/giraffeBanner.js";
 import {CAPELLA_OWL_BANNER} from "./utils/ownBanner.js";
 import {POS_PANDA_MERGE_TRANSITION_BANNER} from "./utils/pandaMergeTransitionBanner.js";
 import {verifyBlocksDataAvailability} from "./verifyBlocksDataAvailability.js";
@@ -22,7 +23,6 @@ import {SegmentExecStatus, verifyBlocksExecutionPayload} from "./verifyBlocksExe
 import {verifyBlocksSignatures} from "./verifyBlocksSignatures.js";
 import {verifyBlocksStateTransitionOnly} from "./verifyBlocksStateTransitionOnly.js";
 import {writeBlockInputToDb} from "./writeBlockInputToDb.js";
-import { GIRAFFE_BANNER } from "./utils/giraffeBanner.js";
 
 /**
  * Verifies 1 or more blocks are fully valid; from a linear sequence of blocks.
@@ -157,7 +157,7 @@ export async function verifyBlocksInEpoch(
             this.logger.info(DENEB_BLOWFISH_BANNER);
             this.logger.info("Activating blobs", {epoch: this.config.DENEB_FORK_EPOCH});
             break;
-          
+
           case ForkName.electra:
             this.logger.info(GIRAFFE_BANNER);
             this.logger.info("Activating maxEB", {epoch: this.config.ELECTRA_FORK_EPOCH});
