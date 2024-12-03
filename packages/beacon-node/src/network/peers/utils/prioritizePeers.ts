@@ -6,6 +6,7 @@ import {MapDef} from "@lodestar/utils";
 import {shuffle} from "../../../util/shuffle.js";
 import {sortBy} from "../../../util/sortBy.js";
 import {ColumnSubnetId} from "../peersData.js";
+import {NetworkCoreMetrics} from "../../core/metrics.js";
 import {RequestedSubnet} from "./subnetMap.js";
 
 /** Target number of peers we'd like to have connected to a given long-lived subnet */
@@ -89,7 +90,8 @@ export function prioritizePeers(
   activeAttnets: RequestedSubnet[],
   activeSyncnets: RequestedSubnet[],
   sampleSubnets: ColumnSubnetId[],
-  opts: PrioritizePeersOpts
+  opts: PrioritizePeersOpts,
+  metrics: NetworkCoreMetrics | null
 ): {
   peersToConnect: number;
   peersToDisconnect: Map<ExcessPeerDisconnectReason, PeerId[]>;
@@ -121,7 +123,8 @@ export function prioritizePeers(
     activeAttnets,
     activeSyncnets,
     sampleSubnets,
-    opts
+    opts,
+    metrics
   );
 
   const connectedPeerCount = connectedPeers.length;
@@ -157,7 +160,8 @@ function requestAttnetPeers(
   activeAttnets: RequestedSubnet[],
   activeSyncnets: RequestedSubnet[],
   samplingSubnets: ColumnSubnetId[],
-  opts: PrioritizePeersOpts
+  opts: PrioritizePeersOpts,
+  metrics: NetworkCoreMetrics | null
 ): {
   attnetQueries: SubnetDiscvQuery[];
   syncnetQueries: SubnetDiscvQuery[];
@@ -216,6 +220,9 @@ function requestAttnetPeers(
 
     for (const {subnet, toSlot} of activeSyncnets) {
       const peersInSubnet = peersPerSubnet.get(subnet) ?? 0;
+      // there could be in runPeerCountMetrics() of PeerManager
+      // however set it here since we have the data
+      metrics?.peerCountPerSamplingColumnSubnet.set({subnet}, peersInSubnet);
       if (peersInSubnet < targetSubnetPeers) {
         // We need more peers
         syncnetQueries.push({subnet, toSlot, maxPeersToDiscover: targetSubnetPeers - peersInSubnet});

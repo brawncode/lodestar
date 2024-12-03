@@ -111,6 +111,11 @@ export function createNetworkCoreMetrics(register: RegistryMetricCreator) {
       help: "network.reportPeer count by reason",
       labelNames: ["reason"],
     }),
+    peerCountPerSamplingColumnSubnet: register.gauge<{subnet: number}>({
+      name: "lodestar_peer_count_per_sampling_column_subnet",
+      help: "Current count of peers per sampling column subnet",
+      labelNames: ["subnet"],
+    }),
     peerManager: {
       heartbeatDuration: register.histogram({
         name: "lodestar_peer_manager_heartbeat_duration_seconds",

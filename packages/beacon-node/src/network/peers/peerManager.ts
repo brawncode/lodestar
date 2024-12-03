@@ -532,7 +532,8 @@ export class PeerManager {
       this.attnetsService.getActiveSubnets(),
       this.syncnetsService.getActiveSubnets(),
       this.sampleSubnets,
-      this.opts
+      this.opts,
+      this.metrics
     );
 
     const queriesMerged: SubnetDiscvQueryMs[] = [];
