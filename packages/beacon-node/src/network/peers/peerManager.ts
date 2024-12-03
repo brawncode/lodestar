@@ -111,6 +111,8 @@ export type PeerManagerModules = {
   statusCache: StatusCache;
 };
 
+export type PeerRequestedSubnetType = SubnetType | "column";
+
 type PeerIdStr = string;
 
 enum RelevantPeerStatus {
@@ -555,6 +557,11 @@ export class PeerManager {
       }
     }
 
+    for (const maxPeersToDiscover of columnSubnetQueries.values()) {
+      this.metrics?.peersRequestedSubnetsToQuery.inc({type: "column"}, 1);
+      this.metrics?.peersRequestedSubnetsPeerCount.inc({type: "column"}, maxPeersToDiscover);
+    }
+
     // disconnect first to have more slots before we dial new peers
     for (const [reason, peers] of peersToDisconnect) {
       this.metrics?.peersRequestedToDisconnect.inc({reason}, peers.length);
@@ -566,6 +573,7 @@ export class PeerManager {
     if (this.discovery) {
       try {
         this.metrics?.peersRequestedToConnect.inc(peersToConnect);
+        // for PeerDAS, lodestar implements subnet sampling strategy, hence we need to issue columnSubnetQueries to PeerDiscovery
         this.discovery.discoverPeers(peersToConnect, columnSubnetQueries, queriesMerged);
       } catch (e) {
         this.logger.error("Error on discoverPeers", {}, e as Error);

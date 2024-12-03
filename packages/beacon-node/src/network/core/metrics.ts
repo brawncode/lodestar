@@ -1,6 +1,7 @@
 import {RegistryMetricCreator} from "../../metrics/utils/registryMetricCreator.js";
 import {SubnetType} from "../metadata.js";
 import {DiscoveredPeerStatus, NotDialReason} from "../peers/discover.js";
+import {PeerRequestedSubnetType} from "../peers/peerManager.js";
 import {SubnetSource} from "../subnets/attnetsService.js";
 
 export type NetworkCoreMetrics = ReturnType<typeof createNetworkCoreMetrics>;
@@ -95,12 +96,12 @@ export function createNetworkCoreMetrics(register: RegistryMetricCreator) {
       help: "Prioritization results total peers count requested to disconnect",
       labelNames: ["reason"],
     }),
-    peersRequestedSubnetsToQuery: register.gauge<{type: SubnetType}>({
+    peersRequestedSubnetsToQuery: register.gauge<{type: PeerRequestedSubnetType}>({
       name: "lodestar_peers_requested_total_subnets_to_query",
       help: "Prioritization results total subnets to query and discover peers in",
       labelNames: ["type"],
     }),
-    peersRequestedSubnetsPeerCount: register.gauge<{type: SubnetType}>({
+    peersRequestedSubnetsPeerCount: register.gauge<{type: PeerRequestedSubnetType}>({
       name: "lodestar_peers_requested_total_subnets_peers_count",
       help: "Prioritization results total peers in subnets to query and discover peers in",
       labelNames: ["type"],
