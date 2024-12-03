@@ -1,13 +1,13 @@
-import xxhashFactory from "xxhash-wasm";
-import {Message} from "@libp2p/interface";
 import {digest} from "@chainsafe/as-sha256";
 import {RPC} from "@chainsafe/libp2p-gossipsub/message";
 import {DataTransform} from "@chainsafe/libp2p-gossipsub/types";
 import snappyWasm from "@chainsafe/snappy-wasm";
-import {intToBytes} from "@lodestar/utils";
+import {Message} from "@libp2p/interface";
 import {ForkName} from "@lodestar/params";
+import {intToBytes} from "@lodestar/utils";
+import xxhashFactory from "xxhash-wasm";
 import {MESSAGE_DOMAIN_VALID_SNAPPY} from "./constants.js";
-import {getGossipSSZType, GossipTopicCache} from "./topic.js";
+import {GossipTopicCache, getGossipSSZType} from "./topic.js";
 
 // Load WASM
 const xxhash = await xxhashFactory();

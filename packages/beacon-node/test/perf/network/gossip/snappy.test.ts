@@ -1,8 +1,8 @@
 import {randomBytes} from "node:crypto";
-import * as snappyjs from "snappyjs";
-import * as snappy from "snappy";
-import {itBench} from "@dapplion/benchmark";
 import snappyWasm from "@chainsafe/snappy-wasm";
+import {itBench} from "@dapplion/benchmark";
+import * as snappy from "snappy";
+import * as snappyjs from "snappyjs";
 
 /* 2024-08-05 - Linux 5.15 x86_64 - Node.js v22.4.1
 
