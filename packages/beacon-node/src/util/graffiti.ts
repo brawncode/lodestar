@@ -18,10 +18,12 @@ export function getDefaultGraffiti(
   }
 
   if (executionClientVersion != null) {
-    const {code: executionCode, commit: executionCommit} = executionClientVersion;
+    let {code: executionCode, commit: executionCommit} = executionClientVersion;
+
+    executionCommit = executionCommit.startsWith("0x") ? executionCommit.slice(2, 6) : executionCommit.slice(0, 4);
 
     // Follow the 2-byte commit format in https://github.com/ethereum/execution-apis/pull/517#issuecomment-1918512560
-    return `${executionCode}${executionCommit.slice(0, 4)}${consensusClientVersion.code}${consensusClientVersion.commit.slice(0, 4)}`;
+    return `${executionCode}${executionCommit}${consensusClientVersion.code}${consensusClientVersion.commit.slice(0, 4)}`;
   }
 
   // No EL client info available. We still want to include CL info albeit not spec compliant
