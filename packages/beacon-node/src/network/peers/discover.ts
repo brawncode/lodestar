@@ -109,8 +109,6 @@ export class PeerDiscovery {
   private logger: LoggerNode;
   private config: BeaconConfig;
   private cachedENRs = new Map<PeerIdStr, CachedENR>();
-  // TODO: understand the use of this
-  private peerIdToCustodySubnetCount = new Map<PeerIdStr, number>();
   private randomNodeQuery: QueryStatus = {code: QueryStatusCode.NotActive};
   private peersToConnect = 0;
   private subnetRequests: Record<SubnetType, Map<number, SubnetRequestInfo>> = {
@@ -372,12 +370,9 @@ export class PeerDiscovery {
 
     const attnets = zeroAttnets;
     const syncnets = zeroSyncnets;
-    const custodySubnetCount = this.peerIdToCustodySubnetCount.get(id.toString());
-    if (custodySubnetCount === undefined) {
-      this.logger.warn("onDiscoveredPeer with unknown custodySubnetCount assuming 4", {peerId: id.toString()});
-    }
+    const custodySubnetCount = this.config.CUSTODY_REQUIREMENT;
 
-    const status = this.handleDiscoveredPeer(id, multiaddrs[0], attnets, syncnets, custodySubnetCount ?? 4);
+    const status = this.handleDiscoveredPeer(id, multiaddrs[0], attnets, syncnets, custodySubnetCount);
     this.logger.debug("Discovered peer via libp2p", {peer: prettyPrintPeerId(id), status});
     this.metrics?.discovery.discoveredStatus.inc({status});
   };
@@ -412,13 +407,16 @@ export class PeerDiscovery {
     // never throw and treat too long or too short bitfields as zero-ed
     const attnets = attnetsBytes ? deserializeEnrSubnets(attnetsBytes, ATTESTATION_SUBNET_COUNT) : zeroAttnets;
     const syncnets = syncnetsBytes ? deserializeEnrSubnets(syncnetsBytes, SYNC_COMMITTEE_SUBNET_COUNT) : zeroSyncnets;
-    const custodySubnetCount = custodySubnetCountBytes
-      ? bytesToInt(custodySubnetCountBytes, "be")
-      : this.config.CUSTODY_REQUIREMENT;
-    this.peerIdToCustodySubnetCount.set(peerId.toString(), custodySubnetCount);
+    const custodySubnetCount = custodySubnetCountBytes ? bytesToInt(custodySubnetCountBytes, "be") : undefined;
 
-    const status = this.handleDiscoveredPeer(peerId, multiaddrTCP, attnets, syncnets, custodySubnetCount);
-    this.logger.debug("Discovered peer via discv5", {peer: prettyPrintPeerId(peerId), status});
+    const status = this.handleDiscoveredPeer(
+      peerId,
+      multiaddrTCP,
+      attnets,
+      syncnets,
+      custodySubnetCount ?? this.config.CUSTODY_REQUIREMENT
+    );
+    this.logger.debug("Discovered peer via discv5", {peer: prettyPrintPeerId(peerId), status, custodySubnetCount});
     this.metrics?.discovery.discoveredStatus.inc({status});
   };
 
