@@ -1,8 +1,8 @@
-import {CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
-import {MaybeValidExecutionStatus, DataAvailabilityStatus} from "@lodestar/fork-choice";
-import {deneb, Slot, RootHex, SignedBeaconBlock, peerdas, ColumnIndex} from "@lodestar/types";
-import {ForkSeq, ForkName} from "@lodestar/params";
-import {ChainForkConfig} from "@lodestar/config";
+import type {ChainForkConfig} from "@lodestar/config";
+import type {DataAvailabilityStatus, MaybeValidExecutionStatus} from "@lodestar/fork-choice";
+import {type ForkName, ForkSeq} from "@lodestar/params";
+import {type CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
+import type {ColumnIndex, RootHex, SignedBeaconBlock, Slot, deneb, peerdas} from "@lodestar/types";
 
 export enum BlockInputType {
   // preData is preDeneb
@@ -10,7 +10,7 @@ export enum BlockInputType {
   // data is out of available window, can be used to sync forward and keep adding to forkchoice
   outOfRangeData = "outOfRangeData",
   availableData = "availableData",
-  dataPromise = "dataPromise",
+  dataPromise = "data_promise",
 }
 
 /** Enum to represent where blocks come from */
@@ -21,6 +21,25 @@ export enum BlockSource {
   byRoot = "req_resp_by_root",
 }
 
+export enum GossipedInputType {
+  block = "block",
+  blob = "blob",
+  dataColumn = "data_column",
+}
+
+interface CachedDataItem {
+  cacheId: number;
+}
+interface Availability<T> {
+  availabilityPromise: Promise<T>;
+  resolveAvailability: (data: T) => void;
+}
+
+/**
+ *
+ * Deneb Blob Format Types
+ *
+ */
 /** Enum to represent where blobs come from */
 export enum BlobsSource {
   gossip = "gossip",
@@ -28,56 +47,84 @@ export enum BlobsSource {
   byRange = "req_resp_by_range",
   byRoot = "req_resp_by_root",
 }
+type ForkBlobsInfo = {
+  fork: ForkName.deneb;
+};
+type BlobData = {
+  blobSidecar: deneb.BlobSidecar;
+  blobBytes: Uint8Array | null;
+};
+export type BlockInputBlobs = ForkBlobsInfo & {
+  blobs: deneb.BlobSidecars;
+  blobsBytes: (Uint8Array | null)[];
+  blobsSource: BlobsSource;
+};
+export type BlobsCacheMap = Map<number, BlobData>;
+type CachedBlobs = CachedDataItem &
+  ForkBlobsInfo &
+  Availability<BlockInputBlobs> & {
+    blobsCache: BlobsCacheMap;
+  };
 
+/**
+ *
+ * PeerDAS Column Format Types
+ *
+ */
 export enum DataColumnsSource {
   gossip = "gossip",
   api = "api",
   byRange = "req_resp_by_range",
   byRoot = "req_resp_by_root",
 }
-
-export enum GossipedInputType {
-  block = "block",
-  blob = "blob",
-  dataColumn = "dataColumn",
-}
-
-export type BlobsCacheMap = Map<number, {blobSidecar: deneb.BlobSidecar; blobBytes: Uint8Array | null}>;
-export type DataColumnsCacheMap = Map<
-  number,
-  {dataColumnSidecar: peerdas.DataColumnSidecar; dataColumnBytes: Uint8Array | null}
->;
-
-type ForkBlobsInfo = {fork: ForkName.deneb};
-type BlobsData = {blobs: deneb.BlobSidecars; blobsBytes: (Uint8Array | null)[]; blobsSource: BlobsSource};
-export type BlockInputDataBlobs = ForkBlobsInfo & BlobsData;
-
-type ForkDataColumnsInfo = {fork: ForkName.peerdas};
-type DataColumnsData = {
+type ForkDataColumnsInfo = {
+  fork: ForkName.peerdas;
+};
+type DataColumnData = {
+  dataColumn: peerdas.DataColumnSidecar;
+  dataColumnBytes: Uint8Array | null;
+};
+export type DataColumnsCacheMap = Map<number, DataColumnData>;
+export type BlockInputDataColumns = ForkDataColumnsInfo & {
   // marker of that columns are to be custodied
   dataColumns: peerdas.DataColumnSidecars;
   dataColumnsBytes: (Uint8Array | null)[];
   dataColumnsSource: DataColumnsSource;
 };
-export type BlockInputDataDataColumns = ForkDataColumnsInfo & DataColumnsData;
-export type BlockInputData = BlockInputDataBlobs | BlockInputDataDataColumns;
+type CachedDataColumns = CachedDataItem &
+  ForkDataColumnsInfo &
+  Availability<BlockInputDataColumns> & {
+    dataColumnsCache: DataColumnsCacheMap;
+  };
 
-type Availability<T> = {availabilityPromise: Promise<T>; resolveAvailability: (data: T) => void};
-type CachedBlobs = {blobsCache: BlobsCacheMap} & Availability<BlockInputDataBlobs>;
-type CachedDataColumns = {dataColumnsCache: DataColumnsCacheMap} & Availability<BlockInputDataDataColumns>;
-export type CachedData = {cacheId: number} & (
-  | (ForkBlobsInfo & CachedBlobs)
-  | (ForkDataColumnsInfo & CachedDataColumns)
-);
+/**
+ *
+ * Cross-Fork Data Types
+ *
+ */
+export type BlockInputAvailableData = BlockInputBlobs | BlockInputDataColumns;
+export type BlockInputCachedData = CachedBlobs | CachedDataColumns;
 
-export type BlockInput = {block: SignedBeaconBlock; source: BlockSource; blockBytes: Uint8Array | null} & (
+export type BlockInput = {
+  block: SignedBeaconBlock;
+  source: BlockSource;
+  blockBytes: Uint8Array | null;
+} & (
   | {type: BlockInputType.preData | BlockInputType.outOfRangeData}
-  | ({type: BlockInputType.availableData} & {blockData: BlockInputData})
+  | ({type: BlockInputType.availableData} & {
+      blockData: BlockInputAvailableData;
+    })
   // the blobsSource here is added to BlockInputBlobs when availability is resolved
-  | ({type: BlockInputType.dataPromise} & {cachedData: CachedData})
+  | ({type: BlockInputType.dataPromise} & {
+      cachedData: BlockInputCachedData;
+    })
 );
-export type NullBlockInput = {block: null; blockRootHex: RootHex; blockInputPromise: Promise<BlockInput>} & {
-  cachedData: CachedData;
+export type NullBlockInput = {
+  block: null;
+  blockRootHex: RootHex;
+  blockInputPromise: Promise<BlockInput>;
+} & {
+  cachedData: BlockInputCachedData;
 };
 
 export function blockRequiresBlobs(config: ChainForkConfig, blockSlot: Slot, clockSlot: Slot): boolean {
@@ -134,7 +181,7 @@ export const getBlockInput = {
     block: SignedBeaconBlock,
     source: BlockSource,
     blockBytes: Uint8Array | null,
-    blockData: BlockInputData
+    blockData: BlockInputAvailableData
   ): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
       throw Error(`Pre Deneb block slot ${block.message.slot}`);
@@ -153,7 +200,7 @@ export const getBlockInput = {
     block: SignedBeaconBlock,
     source: BlockSource,
     blockBytes: Uint8Array | null,
-    cachedData: CachedData
+    cachedData: BlockInputCachedData
   ): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
       throw Error(`Pre Deneb block slot ${block.message.slot}`);
@@ -168,7 +215,7 @@ export const getBlockInput = {
   },
 };
 
-export function getBlockInputBlobs(blobsCache: BlobsCacheMap): Omit<BlobsData, "blobsSource"> {
+export function getBlockInputBlobs(blobsCache: BlobsCacheMap): Omit<BlockInputBlobs, "fork" | "blobsSource"> {
   const blobs = [];
   const blobsBytes = [];
 
@@ -187,7 +234,7 @@ export function getBlockInputBlobs(blobsCache: BlobsCacheMap): Omit<BlobsData, "
 export function getBlockInputDataColumns(
   dataColumnsCache: DataColumnsCacheMap,
   columnIndexes: ColumnIndex[]
-): Omit<DataColumnsData, "dataColumnsLen" | "dataColumnsIndex" | "dataColumnsSource"> {
+): Omit<BlockInputDataColumns, "fork" | "dataColumnsSource"> {
   const dataColumns = [];
   const dataColumnsBytes = [];
 
@@ -197,7 +244,7 @@ export function getBlockInputDataColumns(
       // check if the index is correct as per the custody columns
       throw Error(`Missing dataColumnCache at index=${index}`);
     }
-    const {dataColumnSidecar, dataColumnBytes} = dataColumnCache;
+    const {dataColumn: dataColumnSidecar, dataColumnBytes} = dataColumnCache;
     dataColumns.push(dataColumnSidecar);
     dataColumnsBytes.push(dataColumnBytes);
   }

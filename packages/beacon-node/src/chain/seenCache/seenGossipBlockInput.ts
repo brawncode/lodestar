@@ -9,14 +9,14 @@ import {
   NullBlockInput,
   getBlockInput,
   BlockSource,
-  BlockInputDataBlobs,
-  CachedData,
+  BlockInputBlobs,
+  BlockInputCachedData,
   GossipedInputType,
   getBlockInputBlobs,
   BlobsSource,
   DataColumnsSource,
   getBlockInputDataColumns,
-  BlockInputDataDataColumns,
+  BlockInputDataColumns,
 } from "../blocks/types.js";
 import {Metrics} from "../../metrics/index.js";
 import {CustodyConfig} from "../../util/dataColumns.js";
@@ -39,7 +39,7 @@ type BlockInputCacheType = {
   fork: ForkName;
   block?: SignedBeaconBlock;
   blockBytes?: Uint8Array | null;
-  cachedData?: CachedData;
+  cachedData?: BlockInputCachedData;
   // block promise and its callback cached for delayed resolution
   blockInputPromise: Promise<BlockInput>;
   resolveBlockInput: (blockInput: BlockInput) => void;
@@ -134,7 +134,7 @@ export class SeenGossipBlockInput {
 
       // TODO: freetheblobs check if its the same blob or a duplicate and throw/take actions
       blockCache.cachedData?.dataColumnsCache.set(dataColumnSidecar.index, {
-        dataColumnSidecar,
+        dataColumn: dataColumnSidecar,
         // easily splice out the unsigned message as blob is a fixed length type
         dataColumnBytes: dataColumnBytes?.slice(0, dataColumnBytes.length) ?? null,
       });
@@ -369,8 +369,8 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
   }
 
   if (fork === ForkName.deneb) {
-    let resolveAvailability: ((blobs: BlockInputDataBlobs) => void) | null = null;
-    const availabilityPromise = new Promise<BlockInputDataBlobs>((resolveCB) => {
+    let resolveAvailability: ((blobs: BlockInputBlobs) => void) | null = null;
+    const availabilityPromise = new Promise<BlockInputBlobs>((resolveCB) => {
       resolveAvailability = resolveCB;
     });
 
@@ -379,7 +379,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     }
 
     const blobsCache = new Map();
-    const cachedData: CachedData = {
+    const cachedData: BlockInputCachedData = {
       fork,
       blobsCache,
       availabilityPromise,
@@ -388,8 +388,8 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     };
     return {fork, blockInputPromise, resolveBlockInput, cachedData};
   } else if (fork === ForkName.peerdas) {
-    let resolveAvailability: ((blobs: BlockInputDataDataColumns) => void) | null = null;
-    const availabilityPromise = new Promise<BlockInputDataDataColumns>((resolveCB) => {
+    let resolveAvailability: ((blobs: BlockInputDataColumns) => void) | null = null;
+    const availabilityPromise = new Promise<BlockInputDataColumns>((resolveCB) => {
       resolveAvailability = resolveCB;
     });
 
@@ -398,7 +398,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     }
 
     const dataColumnsCache = new Map();
-    const cachedData: CachedData = {
+    const cachedData: BlockInputCachedData = {
       fork,
       dataColumnsCache,
       availabilityPromise,

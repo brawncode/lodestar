@@ -19,8 +19,8 @@ import {
   BlockInputType,
   BlockSource,
   BlockInput,
-  BlockInputDataBlobs,
-  CachedData,
+  BlockInputBlobs,
+  BlockInputCachedData,
 } from "../../../../src/chain/blocks/types.js";
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../../../src/constants/constants.js";
 import {IteratorEventType} from "../../../../src/util/asyncIterableToEvents.js";
@@ -252,8 +252,8 @@ describe.skip("data serialization through worker boundary", function () {
 type Resolves<T extends Promise<unknown>> = T extends Promise<infer U> ? (U extends void ? null : U) : never;
 
 function getEmptyBlockInput(): BlockInput {
-  let resolveAvailability: ((blobs: BlockInputDataBlobs) => void) | null = null;
-  const availabilityPromise = new Promise<BlockInputDataBlobs>((resolveCB) => {
+  let resolveAvailability: ((blobs: BlockInputBlobs) => void) | null = null;
+  const availabilityPromise = new Promise<BlockInputBlobs>((resolveCB) => {
     resolveAvailability = resolveCB;
   });
   if (resolveAvailability === null) {
@@ -261,7 +261,7 @@ function getEmptyBlockInput(): BlockInput {
   }
   const blobsCache = new Map();
 
-  const cachedData = {fork: ForkName.deneb, blobsCache, availabilityPromise, resolveAvailability} as CachedData;
+  const cachedData = {fork: ForkName.deneb, blobsCache, availabilityPromise, resolveAvailability} as BlockInputCachedData;
   return {
     type: BlockInputType.dataPromise,
     block: ssz.deneb.SignedBeaconBlock.defaultValue(),
