@@ -2,12 +2,6 @@ import {BitArray, CompositeViewDU} from "@chainsafe/ssz";
 import {routes} from "@lodestar/api";
 import {ChainForkConfig} from "@lodestar/config";
 import {
-  LightClientUpdateSummary,
-  isBetterUpdate,
-  toLightClientUpdateSummary,
-  upgradeLightClientHeader,
-} from "@lodestar/light-client/spec";
-import {
   ForkExecution,
   ForkLightClient,
   ForkName,
@@ -60,6 +54,8 @@ import {
   getNextSyncCommitteeBranch,
   getSyncCommitteesWitness,
 } from "./proofs.js";
+import {isBetterUpdate, toLightClientUpdateSummary, upgradeLightClientHeader} from "./utils.js";
+import {LightClientUpdateSummary} from "./types.js";
 
 export type LightClientServerOpts = {
   disableLightClientServerOnImportBlockHead?: boolean;

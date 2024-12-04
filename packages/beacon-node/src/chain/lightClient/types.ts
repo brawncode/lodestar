@@ -1,3 +1,5 @@
+import {Slot} from "@lodestar/types";
+
 /**
  * We aren't creating the sync committee proofs separately because our ssz library automatically adds leaves to composite types,
  * so they're already included in the state proof, currently with no way to specify otherwise
@@ -30,4 +32,18 @@ export type SyncCommitteeWitness = {
   witness: Uint8Array[];
   currentSyncCommitteeRoot: Uint8Array;
   nextSyncCommitteeRoot: Uint8Array;
+};
+
+/**
+ * Wrapper type for `isBetterUpdate()` so we can apply its logic without requiring the full LightClientUpdate type.
+ */
+export type LightClientUpdateSummary = {
+  activeParticipants: number;
+  attestedHeaderSlot: Slot;
+  signatureSlot: Slot;
+  finalizedHeaderSlot: Slot;
+  /** `if update.next_sync_committee_branch != [Bytes32() for _ in range(floorlog2(NEXT_SYNC_COMMITTEE_INDEX))]` */
+  isSyncCommitteeUpdate: boolean;
+  /** `if update.finality_branch != [Bytes32() for _ in range(floorlog2(FINALIZED_ROOT_INDEX))]` */
+  isFinalityUpdate: boolean;
 };
