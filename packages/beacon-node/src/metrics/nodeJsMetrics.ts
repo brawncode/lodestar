@@ -1,4 +1,4 @@
-import {gcStats} from "@chainsafe/prometheus-gc-stats";
+// import {gcStats} from "@chainsafe/prometheus-gc-stats";
 import {Registry, collectDefaultMetrics} from "prom-client";
 
 export function collectNodeJSMetrics(register: Registry, prefix?: string): () => void {
@@ -14,6 +14,9 @@ export function collectNodeJSMetrics(register: Registry, prefix?: string): () =>
   // - nodejs_gc_pause_seconds_total: Time spent in GC in seconds
   // - nodejs_gc_reclaimed_bytes_total: The number of bytes GC has freed
   // `close` must be called to stop the gc collection process from continuing
-  const close = gcStats(register, {collectionInterval: 6000, prefix});
-  return close;
+
+  // TODO replace with bun-compatible gc stats
+  // const close = gcStats(register, {collectionInterval: 6000, prefix});
+  // return close;
+  return () => {};
 }
