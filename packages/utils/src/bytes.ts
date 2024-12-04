@@ -28,7 +28,7 @@ export function intToBytes(value: bigint | number, length: number, endianness: E
  * Convert byte array in LE to integer.
  */
 export function bytesToInt(value: Uint8Array, endianness: Endianness = "le"): number {
-  return Number(bytesToBigInt(value, endianness));
+  return Math.floor(Number(bytesToBigInt(value, endianness)));
 }
 
 export function bigIntToBytes(value: bigint, length: number, endianness: Endianness = "le"): Buffer {
