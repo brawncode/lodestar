@@ -304,7 +304,8 @@ export async function verifyBlockExecutionPayload(
   const parentBlockRoot = ForkSeq[fork] >= ForkSeq.deneb ? block.message.parentRoot : undefined;
   const executionRequests =
     ForkSeq[fork] >= ForkSeq.electra ? (block.message.body as electra.BeaconBlockBody).executionRequests : undefined;
-  const targetBlobsPerBlock = ForkSeq[fork] >= ForkSeq.electra ? 0 : undefined;
+  const targetBlobsPerBlock = 
+    ForkSeq[fork] >= ForkSeq.electra ? 0 : undefined;
 
   const logCtx = {slot: block.message.slot, executionBlock: executionPayloadEnabled.blockNumber};
   chain.logger.debug("Call engine api newPayload", logCtx);
@@ -314,7 +315,7 @@ export async function verifyBlockExecutionPayload(
     versionedHashes,
     parentBlockRoot,
     executionRequests,
-    targetBlobsPerBlock
+    targetBlobsPerBlock,
   );
   chain.logger.debug("Receive engine api newPayload result", {...logCtx, status: execResult.status});
 

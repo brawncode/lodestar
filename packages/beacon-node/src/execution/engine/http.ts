@@ -202,7 +202,7 @@ export class ExecutionEngineHttp implements IExecutionEngine {
     versionedHashes?: VersionedHashes,
     parentBlockRoot?: Root,
     executionRequests?: ExecutionRequests,
-    maxBlobsPerBlock?: number
+    maxBlobsPerBlock?: number,
   ): Promise<ExecutePayloadResponse> {
     const method =
       ForkSeq[fork] >= ForkSeq.electra
@@ -349,10 +349,11 @@ export class ExecutionEngineHttp implements IExecutionEngine {
     const method =
       ForkSeq[fork] >= ForkSeq.electra
         ? "engine_forkchoiceUpdatedV4"
-        : ForkSeq[fork] >= ForkSeq.deneb
-          ? "engine_forkchoiceUpdatedV3"
+        :
+        ForkSeq[fork] >= ForkSeq.deneb
+        ? "engine_forkchoiceUpdatedV3"
           : ForkSeq[fork] >= ForkSeq.capella
-            ? "engine_forkchoiceUpdatedV2"
+          ? "engine_forkchoiceUpdatedV2"
             : "engine_forkchoiceUpdatedV1";
     const payloadAttributesRpc = payloadAttributes ? serializePayloadAttributes(payloadAttributes) : undefined;
     // If we are just fcUing and not asking execution for payload, retry is not required

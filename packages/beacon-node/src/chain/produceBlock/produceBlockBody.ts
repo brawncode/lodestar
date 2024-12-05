@@ -40,7 +40,6 @@ import {numToQuantity} from "../../eth1/provider/utils.js";
 import {IExecutionBuilder, IExecutionEngine, PayloadAttributes, PayloadId} from "../../execution/index.js";
 import type {BeaconChain} from "../chain.js";
 import {CommonBlockBody} from "../interface.js";
-import {IChainOptions} from "../options.js";
 import {validateBlobsAndKzgCommitments} from "./validateBlobsAndKzgCommitments.js";
 
 // Time to provide the EL to generate a payload from new payload id
@@ -376,7 +375,6 @@ export async function prepareExecutionPayload(
     eth1: IEth1ForBlockProduction;
     executionEngine: IExecutionEngine;
     config: ChainForkConfig;
-    opts: IChainOptions;
   },
   logger: Logger,
   fork: ForkExecution,
@@ -518,7 +516,6 @@ export async function getPayloadAttributesForSSE(
   chain: {
     eth1: IEth1ForBlockProduction;
     config: ChainForkConfig;
-    opts: IChainOptions;
   },
   {
     prepareState,
@@ -556,7 +553,6 @@ function preparePayloadAttributes(
   fork: ForkExecution,
   chain: {
     config: ChainForkConfig;
-    opts: IChainOptions;
   },
   {
     prepareState,
@@ -591,10 +587,8 @@ function preparePayloadAttributes(
   }
 
   if (ForkSeq[fork] >= ForkSeq.electra) {
-    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).targetBlobsPerBlock =
-      chain.opts.targetBlobsPerBlock ?? 4;
-    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).maxBlobsPerBlock =
-      chain.opts.maxBlobsPerBlock ?? 8;
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).targetBlobsPerBlock = 0;
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).maxBlobsPerBlock = 0;
   }
 
   return payloadAttributes;

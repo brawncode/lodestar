@@ -41,8 +41,6 @@ export type IChainOptions = BlockProcessOpts &
     archiveBlobEpochs?: number;
     nHistoricalStates?: boolean;
     nHistoricalStatesFileDataStore?: boolean;
-    targetBlobsPerBlock?: number;
-    maxBlobsPerBlock?: number;
   };
 
 export type BlockProcessOpts = {
@@ -121,6 +119,4 @@ export const defaultChainOptions: IChainOptions = {
   nHistoricalStatesFileDataStore: false,
   maxBlockStates: DEFAULT_MAX_BLOCK_STATES,
   maxCPStateEpochsInMemory: DEFAULT_MAX_CP_STATE_EPOCHS_IN_MEMORY,
-  targetBlobsPerBlock: 4, // This is arbitrary as we have not agreed on an appropriate value yet
-  maxBlobsPerBlock: 8, // This is arbitrary as we have not agreed on an appropriate value yet
 };
