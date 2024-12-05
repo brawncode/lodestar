@@ -21,15 +21,15 @@ export class PreGenesisState {
   }
 
   async put(value: BeaconStateAllForks): Promise<void> {
-    await this.db.put(this.key, value.serialize());
+    await this.db.put(this.key, value.serialize(), {bucketId: Bucket[this.bucket]});
   }
 
   async get(): Promise<BeaconStateAllForks | null> {
-    const value = await this.db.get(this.key);
+    const value = await this.db.get(this.key, {bucketId: Bucket[this.bucket]});
     return value ? this.type.deserializeToViewDU(value) : null;
   }
 
   async delete(): Promise<void> {
-    await this.db.delete(this.key);
+    await this.db.delete(this.key, {bucketId: Bucket[this.bucket]});
   }
 }

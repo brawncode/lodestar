@@ -50,7 +50,7 @@ export class Eth1MergeBlockTracker {
   private readonly metrics: Metrics | null;
 
   private readonly blocksByHashCache = new Map<RootHex, PowMergeBlock>();
-  private readonly intervals: NodeJS.Timeout[] = [];
+  private readonly intervals: NodeJS.Timer[] = [];
 
   private status: Status;
   private latestEth1Block: PowMergeBlockTimestamp | null = null;

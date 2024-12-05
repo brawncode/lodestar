@@ -121,7 +121,7 @@ export class BlsMultiThreadWorkerPool implements IBlsVerifier {
     prioritizedJobs: LinkedList<JobQueueItem>;
     sigCount: number;
     firstPush: number;
-    timeout: NodeJS.Timeout;
+    timeout: NodeJS.Timer;
   } | null = null;
   private blsVerifyAllMultiThread: boolean;
   private closed = false;

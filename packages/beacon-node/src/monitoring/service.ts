@@ -46,8 +46,8 @@ export class MonitoringService {
   private readonly sendDataMetric: Histogram<{status: SendDataStatus}>;
 
   private status = Status.Started;
-  private initialDelayTimeout?: NodeJS.Timeout;
-  private monitoringInterval?: NodeJS.Timeout;
+  private initialDelayTimeout?: NodeJS.Timer;
+  private monitoringInterval?: NodeJS.Timer;
   private fetchAbortController?: AbortController;
   private pendingRequest?: Promise<void>;
 

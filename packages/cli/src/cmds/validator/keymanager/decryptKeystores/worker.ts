@@ -18,7 +18,7 @@ export async function decryptKeystore(args: DecryptKeystoreArgs): Promise<Transf
   const secret = await keystore.decrypt(args.password);
   // Transfer the underlying ArrayBuffer back to the main thread: https://threads.js.org/usage-advanced#transferable-objects
   // This small performance gain may help in cases where this is run for many keystores
-  return Transfer(secret, [secret.buffer]);
+  return Transfer(secret, [secret.buffer as ArrayBuffer]);
 }
 
 expose({decryptKeystore} as unknown as DecryptKeystoreWorkerAPI);

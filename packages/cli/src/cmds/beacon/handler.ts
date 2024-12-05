@@ -1,8 +1,8 @@
 import path from "node:path";
 import {getHeapStatistics} from "node:v8";
-import {BeaconDb, BeaconNode} from "@lodestar/beacon-node";
+import {BeaconDb, BeaconNode, bucketNames} from "@lodestar/beacon-node";
 import {ChainForkConfig, createBeaconConfig} from "@lodestar/config";
-import {LevelDbController} from "@lodestar/db";
+import {BunSqliteController, DatabaseController, LevelDbController} from "@lodestar/db";
 import {LoggerNode, getNodeLogger} from "@lodestar/logger/node";
 import {ACTIVE_PRESET, PresetName} from "@lodestar/params";
 import {ErrorAborted} from "@lodestar/utils";
@@ -60,8 +60,18 @@ export async function beaconHandler(args: BeaconArgs & GlobalArgs): Promise<void
 
   if (ACTIVE_PRESET === PresetName.minimal) logger.info("ACTIVE_PRESET == minimal preset");
 
-  const db = new BeaconDb(config, await LevelDbController.create(options.db, {metrics: null, logger}));
-  logger.info("Connected to LevelDB database", {path: options.db.name});
+  let dbController: DatabaseController<Uint8Array, Uint8Array>;
+  if (globalThis.Bun) {
+    const {BunSqliteController} = await import("@lodestar/db");
+    options.db.name += ".sqlite";
+    dbController = BunSqliteController.create(options.db, {metrics: null, logger});
+    (dbController as BunSqliteController).createTables(bucketNames);
+    logger.info("Connected to SQLite database", {path: options.db.name});
+  } else {
+    dbController = await LevelDbController.create(options.db, {metrics: null, logger});
+    logger.info("Connected to LevelDB database", {path: options.db.name});
+  }
+  const db = new BeaconDb(config, dbController);
 
   // BeaconNode setup
   try {

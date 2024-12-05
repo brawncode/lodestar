@@ -49,7 +49,8 @@ export function mergeBeaconNodeOptionsWithDefaults(
   defaultOptions: IBeaconNodeOptions,
   ...partialOptionsArr: RecursivePartial<IBeaconNodeOptions>[]
 ): IBeaconNodeOptions {
-  return mergeBeaconNodeOptions(defaultOptions, ...partialOptionsArr) as IBeaconNodeOptions;
+  // biome-ignore lint/suspicious/noExplicitAny: this is a test branch
+  return mergeBeaconNodeOptions(defaultOptions as any, ...partialOptionsArr) as IBeaconNodeOptions;
 }
 
 /**

@@ -16,7 +16,7 @@ export function showProgress({
   let current = 0;
   let last = 0;
   let lastProcessTime: number = Date.now();
-  let progressIntervalId: NodeJS.Timeout;
+  let progressIntervalId: NodeJS.Timer;
 
   const needle: NeedleFunc = (needle: number) => {
     // zero is considered first index in the range

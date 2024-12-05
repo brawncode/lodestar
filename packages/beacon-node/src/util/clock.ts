@@ -66,7 +66,7 @@ export type IClock = StrictEventEmitter<EventEmitter, ClockEvents> & {
 export class Clock extends EventEmitter implements IClock {
   readonly genesisTime: number;
   private readonly config: ChainForkConfig;
-  private timeoutId: number | NodeJS.Timeout;
+  private timeoutId: number | NodeJS.Timer;
   private readonly signal: AbortSignal;
   private _currentSlot: number;
 

@@ -221,7 +221,7 @@ const api: HistoricalStateWorkerApi = {
     const stateBytes = await queue.push<Uint8Array>(() =>
       getHistoricalState(slot, config, db, pubkey2index, historicalStateRegenMetrics)
     );
-    const result = Transfer(stateBytes, [stateBytes.buffer]) as unknown as Uint8Array;
+    const result = Transfer(stateBytes, [stateBytes.buffer as ArrayBuffer]) as unknown as Uint8Array;
 
     historicalStateRegenMetrics?.regenSuccessCount.inc();
     return result;

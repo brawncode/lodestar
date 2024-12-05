@@ -145,7 +145,7 @@ export class PeerManager {
   private connectedPeers: Map<PeerIdStr, PeerData>;
 
   private opts: PeerManagerOpts;
-  private intervals: NodeJS.Timeout[] = [];
+  private intervals: NodeJS.Timer[] = [];
 
   constructor(modules: PeerManagerModules, opts: PeerManagerOpts, discovery: PeerDiscovery | null) {
     this.libp2p = modules.libp2p;

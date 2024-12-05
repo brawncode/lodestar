@@ -14,7 +14,7 @@ export class ReqRespRateLimiter {
   private readonly rateLimitersPerPeer = new Map<ProtocolID, RateLimiterGRCA<string>>();
   private readonly rateLimitersTotal = new Map<ProtocolID, RateLimiterGRCA<null>>();
   /** Interval to check lastSeenMessagesByPeer */
-  private cleanupInterval: NodeJS.Timeout | undefined = undefined;
+  private cleanupInterval: NodeJS.Timer | undefined = undefined;
   private rateLimitMultiplier: number;
   /** Periodically check this to remove tracker of disconnected peers */
   private lastSeenRequestsByPeer: Map<string, number>;

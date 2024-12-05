@@ -28,7 +28,7 @@ const DB_SIZE_METRIC_INTERVAL_MS = 5 * 60 * 1000;
 export class LevelDbController implements DatabaseController<Uint8Array, Uint8Array> {
   private status = Status.started;
 
-  private dbSizeMetricInterval?: NodeJS.Timeout;
+  private dbSizeMetricInterval?: NodeJS.Timer;
 
   constructor(
     private readonly logger: Logger,
@@ -90,7 +90,7 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
     await this.db.clear();
   }
 
-  async get(key: Uint8Array, opts?: DbReqOpts): Promise<Uint8Array | null> {
+  async get(key: Uint8Array, opts: DbReqOpts): Promise<Uint8Array | null> {
     try {
       this.metrics?.dbReadReq.inc({bucket: opts?.bucketId ?? BUCKET_ID_UNKNOWN}, 1);
       this.metrics?.dbReadItems.inc({bucket: opts?.bucketId ?? BUCKET_ID_UNKNOWN}, 1);
@@ -103,7 +103,7 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
     }
   }
 
-  put(key: Uint8Array, value: Uint8Array, opts?: DbReqOpts): Promise<void> {
+  put(key: Uint8Array, value: Uint8Array, opts: DbReqOpts): Promise<void> {
     this.metrics?.dbWriteReq.inc({bucket: opts?.bucketId ?? BUCKET_ID_UNKNOWN}, 1);
     this.metrics?.dbWriteItems.inc({bucket: opts?.bucketId ?? BUCKET_ID_UNKNOWN}, 1);
 
@@ -131,15 +131,15 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
     return this.db.batch(keys.map((key) => ({type: "del", key: key})));
   }
 
-  keysStream(opts: FilterOptions<Uint8Array> = {}): AsyncIterable<Uint8Array> {
+  keysStream(opts: FilterOptions<Uint8Array>): AsyncIterable<Uint8Array> {
     return this.metricsIterator(this.db.keys(opts), (key) => key, opts.bucketId ?? BUCKET_ID_UNKNOWN);
   }
 
-  valuesStream(opts: FilterOptions<Uint8Array> = {}): AsyncIterable<Uint8Array> {
+  valuesStream(opts: FilterOptions<Uint8Array>): AsyncIterable<Uint8Array> {
     return this.metricsIterator(this.db.values(opts), (value) => value, opts.bucketId ?? BUCKET_ID_UNKNOWN);
   }
 
-  entriesStream(opts: FilterOptions<Uint8Array> = {}): AsyncIterable<KeyValue<Uint8Array, Uint8Array>> {
+  entriesStream(opts: FilterOptions<Uint8Array>): AsyncIterable<KeyValue<Uint8Array, Uint8Array>> {
     return this.metricsIterator(
       this.db.iterator(opts),
       (entry) => ({key: entry[0], value: entry[1]}),
@@ -147,15 +147,15 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
     );
   }
 
-  keys(opts: FilterOptions<Uint8Array> = {}): Promise<Uint8Array[]> {
+  keys(opts: FilterOptions<Uint8Array>): Promise<Uint8Array[]> {
     return this.metricsAll(this.db.keys(opts).all(), opts.bucketId ?? BUCKET_ID_UNKNOWN);
   }
 
-  values(opts: FilterOptions<Uint8Array> = {}): Promise<Uint8Array[]> {
+  values(opts: FilterOptions<Uint8Array>): Promise<Uint8Array[]> {
     return this.metricsAll(this.db.values(opts).all(), opts.bucketId ?? BUCKET_ID_UNKNOWN);
   }
 
-  async entries(opts: FilterOptions<Uint8Array> = {}): Promise<KeyValue<Uint8Array, Uint8Array>[]> {
+  async entries(opts: FilterOptions<Uint8Array>): Promise<KeyValue<Uint8Array, Uint8Array>[]> {
     const entries = await this.metricsAll(this.db.iterator(opts).all(), opts.bucketId ?? BUCKET_ID_UNKNOWN);
     return entries.map((entry) => ({key: entry[0], value: entry[1]}));
   }

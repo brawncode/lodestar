@@ -153,7 +153,7 @@ export async function* sendRequest(
     const respTimeoutController = new AbortController();
 
     const timeoutTTFB = setTimeout(() => ttfbTimeoutController.abort(), TTFB_TIMEOUT);
-    let timeoutRESP: NodeJS.Timeout | null = null;
+    let timeoutRESP: NodeJS.Timer | null = null;
 
     const restartRespTimeout = (): void => {
       if (timeoutRESP) clearTimeout(timeoutRESP);

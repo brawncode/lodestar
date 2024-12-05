@@ -18,15 +18,15 @@ export class PreGenesisStateLastProcessedBlock {
   }
 
   async put(value: number): Promise<void> {
-    await this.db.put(this.key, this.type.serialize(value));
+    await this.db.put(this.key, this.type.serialize(value), {bucketId: Bucket[this.bucket]});
   }
 
   async get(): Promise<number | null> {
-    const value = await this.db.get(this.key);
+    const value = await this.db.get(this.key, {bucketId: Bucket[this.bucket]});
     return value ? this.type.deserialize(value) : null;
   }
 
   async delete(): Promise<void> {
-    await this.db.delete(this.key);
+    await this.db.delete(this.key, {bucketId: Bucket[this.bucket]});
   }
 }
