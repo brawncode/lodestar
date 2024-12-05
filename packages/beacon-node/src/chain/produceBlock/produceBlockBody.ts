@@ -1,5 +1,5 @@
 import {ChainForkConfig} from "@lodestar/config";
-import {ForkExecution, ForkSeq, isForkExecution} from "@lodestar/params";
+import {ForkExecution, ForkSeq, MAX_BLOBS_PER_BLOCK, isForkExecution} from "@lodestar/params";
 import {
   CachedBeaconStateAllForks,
   CachedBeaconStateBellatrix,
@@ -587,8 +587,10 @@ function preparePayloadAttributes(
   }
 
   if (ForkSeq[fork] >= ForkSeq.electra) {
-    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).targetBlobsPerBlock = 0;
-    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).maxBlobsPerBlock = 0;
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).targetBlobsPerBlock = Math.floor(
+      MAX_BLOBS_PER_BLOCK / 2
+    );
+    (payloadAttributes as electra.SSEPayloadAttributes["payloadAttributes"]).maxBlobsPerBlock = MAX_BLOBS_PER_BLOCK;
   }
 
   return payloadAttributes;

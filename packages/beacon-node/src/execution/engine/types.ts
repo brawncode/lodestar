@@ -202,8 +202,9 @@ export type PayloadAttributesRpc = {
   withdrawals?: WithdrawalRpc[];
   /** DATA, 32 Bytes - value for the parentBeaconBlockRoot to be used for building block */
   parentBeaconBlockRoot?: DATA;
-  // TODO
+  /** QUANTITY, 64 Bits - Average number of blobs to include per payload. */
   targetBlobsPerBlock?: QUANTITY;
+  /** QUANTITY, 64 Bits - Maximum number of blobs allowed per payload. */
   maxBlobsPerBlock?: QUANTITY;
 };
 
