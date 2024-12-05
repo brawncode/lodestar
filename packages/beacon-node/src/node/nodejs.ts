@@ -195,16 +195,17 @@ export class BeaconNode {
         )
       : null;
 
-    const historicalStateRegen = await HistoricalStateRegen.init({
-      opts: {
-        genesisTime: anchorState.genesisTime,
-        dbLocation: opts.db.name,
-      },
-      config,
-      metrics,
-      logger: logger.child({module: LoggerModule.chain}),
-      signal,
-    });
+    // const historicalStateRegen = await HistoricalStateRegen.init({
+    //   opts: {
+    //     genesisTime: anchorState.genesisTime,
+    //     dbLocation: opts.db.name,
+    //   },
+    //   config,
+    //   metrics,
+    //   logger: logger.child({module: LoggerModule.chain}),
+    //   signal,
+    // });
+    const historicalStateRegen = undefined;
 
     const chain = new BeaconChain(opts.chain, {
       config,
@@ -287,7 +288,8 @@ export class BeaconNode {
     const metricsServer = opts.metrics.enabled
       ? await getHttpMetricsServer(opts.metrics, {
           register: (metrics as Metrics).register,
-          getOtherMetrics: async () => Promise.all([network.scrapeMetrics(), historicalStateRegen.scrapeMetrics()]),
+          // getOtherMetrics: async () => Promise.all([network.scrapeMetrics(), historicalStateRegen.scrapeMetrics()]),
+          getOtherMetrics: async () => Promise.all([network.scrapeMetrics()]),
           logger: logger.child({module: LoggerModule.metrics}),
         })
       : null;
