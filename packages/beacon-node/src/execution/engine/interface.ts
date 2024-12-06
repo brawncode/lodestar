@@ -89,7 +89,7 @@ export type PayloadAttributes = {
   withdrawals?: capella.Withdrawal[];
   parentBeaconBlockRoot?: Uint8Array;
   targetBlobsPerBlock?: number;
-  maxBlobsperBlock?: number;
+  maxBlobsPerBlock?: number;
 };
 
 export type BlobsBundle = {

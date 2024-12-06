@@ -362,7 +362,7 @@ export function serializePayloadAttributes(data: PayloadAttributes): PayloadAttr
     withdrawals: data.withdrawals?.map(serializeWithdrawal),
     parentBeaconBlockRoot: data.parentBeaconBlockRoot ? bytesToData(data.parentBeaconBlockRoot) : undefined,
     targetBlobsPerBlock: data.targetBlobsPerBlock ? numToQuantity(data.targetBlobsPerBlock) : undefined,
-    maxBlobsPerBlock: data.maxBlobsperBlock ? numToQuantity(data.maxBlobsperBlock) : undefined,
+    maxBlobsPerBlock: data.maxBlobsPerBlock ? numToQuantity(data.maxBlobsPerBlock) : undefined,
   };
 }
 
@@ -380,7 +380,7 @@ export function deserializePayloadAttributes(data: PayloadAttributesRpc): Payloa
     withdrawals: data.withdrawals?.map((withdrawal) => deserializeWithdrawal(withdrawal)),
     parentBeaconBlockRoot: data.parentBeaconBlockRoot ? dataToBytes(data.parentBeaconBlockRoot, 32) : undefined,
     targetBlobsPerBlock: data.targetBlobsPerBlock ? quantityToNum(data.targetBlobsPerBlock) : undefined,
-    maxBlobsperBlock: data.maxBlobsPerBlock ? quantityToNum(data.maxBlobsPerBlock) : undefined,
+    maxBlobsPerBlock: data.maxBlobsPerBlock ? quantityToNum(data.maxBlobsPerBlock) : undefined,
   };
 }
 
