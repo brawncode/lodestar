@@ -69,7 +69,6 @@ export function msgIdFn(gossipTopicCache: GossipTopicCache, msg: Message): Uint8
 export class DataTransformSnappy implements DataTransform {
   constructor(
     private readonly gossipTopicCache: GossipTopicCache,
-    /** size of the compressed message */
     private readonly maxSizePerMessage: number
   ) {}
 
@@ -80,13 +79,7 @@ export class DataTransformSnappy implements DataTransform {
    * - `outboundTransform()`: compress snappy payload
    */
   inboundTransform(topicStr: string, data: Uint8Array): Uint8Array {
-    if (data.length > this.maxSizePerMessage) {
-      throw Error(`ssz_snappy data length ${data.length} > maxSizePerMessage`);
-    }
-
-    // snappy compression efficiency is around ~36% so the max uncompressed bound
-    // should be 3X
-    const uncompressedData = uncompress(data, 3 * this.maxSizePerMessage);
+    const uncompressedData = uncompress(data, this.maxSizePerMessage);
 
     // check uncompressed data length before we extract beacon block root, slot or
     // attestation data at later steps

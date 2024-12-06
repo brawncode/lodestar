@@ -12,10 +12,10 @@ export const ATTESTATION_PROPAGATION_SLOT_RANGE = 32;
 
 /** The maximum allowed size of uncompressed gossip messages. */
 export const GOSSIP_MAX_SIZE = 2 ** 20;
-export const GOSSIP_MAX_SIZE_BELLATRIX = 10 * GOSSIP_MAX_SIZE;
+export const GOSSIP_MAX_SIZE_BELLATRIX = 15 * GOSSIP_MAX_SIZE;
 /** The maximum allowed size of uncompressed req/resp chunked responses. */
 export const MAX_CHUNK_SIZE = 2 ** 20;
-export const MAX_CHUNK_SIZE_BELLATRIX = 10 * MAX_CHUNK_SIZE;
+export const MAX_CHUNK_SIZE_BELLATRIX = 15 * MAX_CHUNK_SIZE;
 
 export enum GoodByeReasonCode {
   CLIENT_SHUTDOWN = 1,
