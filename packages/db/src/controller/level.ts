@@ -1,5 +1,5 @@
 import {Logger} from "@lodestar/utils";
-import {ClassicLevel} from "classic-level";
+import {type ClassicLevel} from "classic-level";
 import {DatabaseController, DatabaseOptions, DbReqOpts, FilterOptions, KeyValue} from "./interface.js";
 import {LevelDbControllerMetrics} from "./metrics.js";
 
@@ -43,6 +43,7 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
   }
 
   static async create(opts: LevelDBOptions, {metrics, logger}: LevelDbControllerModules): Promise<LevelDbController> {
+    const {ClassicLevel} = await import("classic-level");
     const db =
       opts.db ||
       new ClassicLevel(opts.name || "beaconchain", {
@@ -226,6 +227,7 @@ export class LevelDbController implements DatabaseController<Uint8Array, Uint8Ar
   }
 
   static async destroy(location: string): Promise<void> {
+    const {ClassicLevel} = await import("classic-level");
     return ClassicLevel.destroy(location);
   }
 }
