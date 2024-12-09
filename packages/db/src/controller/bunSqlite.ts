@@ -112,7 +112,7 @@ export class BunSqliteController implements DatabaseController<Uint8Array, Uint8
     this.metrics?.dbWriteReq.inc({bucket: opts.bucketId}, 1);
     this.metrics?.dbWriteItems.inc({bucket: opts.bucketId}, 1);
 
-    const query = this.db.query(`DELETE FROM ${opts.bucketId} WHERE id = ?1`);
+    const query = this.db.query(`DELETE FROM ${opts.bucketId} WHERE key = ?1`);
     query.run(key);
   }
 
