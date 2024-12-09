@@ -3,7 +3,7 @@ import {ENR} from "@chainsafe/enr";
 import {identify} from "@chainsafe/libp2p-identify";
 import {noise} from "@chainsafe/libp2p-noise";
 import {bootstrap} from "@libp2p/bootstrap";
-import {PeerId} from "@libp2p/interface";
+import {ConnectionEncrypter, PeerId} from "@libp2p/interface";
 import {mdns} from "@libp2p/mdns";
 import {mplex} from "@libp2p/mplex";
 import {prometheusMetrics} from "@libp2p/prometheus-metrics";
@@ -13,6 +13,7 @@ import {Registry} from "prom-client";
 import {Libp2p, LodestarComponents} from "../interface.js";
 import {NetworkOptions, defaultNetworkOptions} from "../options.js";
 import {Eth2PeerDataStore} from "../peers/datastore.js";
+import {bunNoiseCrypto} from "./bunNoise.js";
 
 export type NodeJsLibp2pOpts = {
   peerStoreDir?: string;
@@ -64,13 +65,20 @@ export async function createNodeJsLibp2p(
     }
   }
 
+  let noiseEncrypter: ReturnType<typeof noise>;
+  if (globalThis.Bun) {
+    noiseEncrypter = noise({crypto: bunNoiseCrypto});
+  } else {
+    noiseEncrypter = noise();
+  }
+
   return createLibp2p({
     peerId,
     addresses: {
       listen: localMultiaddrs,
       announce: [],
     },
-    connectionEncryption: [noise()],
+    connectionEncryption: [noiseEncrypter],
     // Reject connections when the server's connection count gets high
     transports: [
       tcp({
