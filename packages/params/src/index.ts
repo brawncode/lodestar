@@ -147,6 +147,7 @@ export const DOMAIN_SYNC_COMMITTEE = Uint8Array.from([7, 0, 0, 0]);
 export const DOMAIN_SYNC_COMMITTEE_SELECTION_PROOF = Uint8Array.from([8, 0, 0, 0]);
 export const DOMAIN_CONTRIBUTION_AND_PROOF = Uint8Array.from([9, 0, 0, 0]);
 export const DOMAIN_BLS_TO_EXECUTION_CHANGE = Uint8Array.from([10, 0, 0, 0]);
+export const DOMAIN_IL_COMMITTEE = Uint8Array.from([12, 0, 0, 0])
 
 // Application specific domains
 
@@ -272,3 +273,7 @@ export const FINALIZED_ROOT_INDEX_ELECTRA = 41;
 export const NEXT_SYNC_COMMITTEE_GINDEX_ELECTRA = 87;
 export const NEXT_SYNC_COMMITTEE_DEPTH_ELECTRA = 6;
 export const NEXT_SYNC_COMMITTEE_INDEX_ELECTRA = 23;
+
+// focil
+export const IL_COMMITTEE_SIZE = 16;
+export const MAX_TRANSACTIONS_PER_INCLUSION_LIST = 1;
