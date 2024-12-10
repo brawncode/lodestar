@@ -257,7 +257,7 @@ type TypesByFork = {
     AggregateAndProof: electra.AggregateAndProof;
     SignedAggregateAndProof: electra.SignedAggregateAndProof;
     ExecutionRequests: electra.ExecutionRequests;
-  }
+  };
 };
 
 export type TypesFor<F extends ForkName, K extends keyof TypesByFork[F] | void = void> = K extends void

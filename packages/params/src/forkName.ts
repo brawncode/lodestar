@@ -105,7 +105,7 @@ export const forkPostFocil = exclude(forkAll, [
   ForkName.capella,
   ForkName.deneb,
   ForkName.electra,
-])
+]);
 export function isForkPostFocil(fork: ForkName): fork is ForkPostFocil {
   return isForkPostElectra(fork) && fork !== ForkName.electra;
 }
