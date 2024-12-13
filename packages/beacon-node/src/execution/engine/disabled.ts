@@ -28,8 +28,4 @@ export class ExecutionEngineDisabled implements IExecutionEngine {
   getPayloadBodiesByRange(): Promise<never> {
     throw Error("Execution engine disabled");
   }
-
-  getBlobs(): Promise<never> {
-    throw Error("Execution engine disabled");
-  }
 }

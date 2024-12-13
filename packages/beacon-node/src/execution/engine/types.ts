@@ -6,7 +6,6 @@ import {
   ForkSeq,
 } from "@lodestar/params";
 import {ExecutionPayload, ExecutionRequests, Root, Wei, bellatrix, capella, deneb, electra, ssz} from "@lodestar/types";
-import {BlobAndProof} from "@lodestar/types/deneb";
 
 import {
   DATA,
@@ -68,8 +67,6 @@ export type EngineApiRpcParamTypes = {
    * Object - Instance of ClientVersion
    */
   engine_getClientVersionV1: [ClientVersionRpc];
-
-  engine_getBlobsV1: [DATA[]];
 };
 
 export type PayloadStatus = {
@@ -112,8 +109,6 @@ export type EngineApiRpcReturnTypes = {
   engine_getPayloadBodiesByRangeV1: (ExecutionPayloadBodyRpc | null)[];
 
   engine_getClientVersionV1: ClientVersionRpc[];
-
-  engine_getBlobsV1: (BlobAndProofRpc | null)[];
 };
 
 type ExecutionPayloadRpcWithValue = {
@@ -175,11 +170,6 @@ export type ExecutionRequestsRpc = [DepositRequestsRpc, WithdrawalRequestsRpc, C
 export type DepositRequestsRpc = DATA;
 export type WithdrawalRequestsRpc = DATA;
 export type ConsolidationRequestsRpc = DATA;
-
-export type BlobAndProofRpc = {
-  blob: DATA;
-  proof: DATA;
-};
 
 export type VersionedHashesRpc = DATA[];
 
@@ -468,15 +458,6 @@ export function serializeExecutionPayloadBody(data: ExecutionPayloadBody | null)
     ? {
         transactions: data.transactions.map((tran) => bytesToData(tran)),
         withdrawals: data.withdrawals ? data.withdrawals.map(serializeWithdrawal) : null,
-      }
-    : null;
-}
-
-export function deserializeBlobAndProofs(data: BlobAndProofRpc | null): BlobAndProof | null {
-  return data
-    ? {
-        blob: dataToBytes(data.blob, BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB),
-        proof: dataToBytes(data.proof, 48),
       }
     : null;
 }
