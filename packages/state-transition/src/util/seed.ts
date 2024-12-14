@@ -12,7 +12,7 @@ import {
   SYNC_COMMITTEE_SIZE,
 } from "@lodestar/params";
 import {Bytes32, DomainType, Epoch, ValidatorIndex} from "@lodestar/types";
-import {assert, bytesToBigInt, intToBytes} from "@lodestar/utils";
+import {assert, bytesToBigInt, bytesToInt, intToBytes} from "@lodestar/utils";
 import {EffectiveBalanceIncrements} from "../cache/effectiveBalanceIncrements.js";
 import {BeaconStateAllForks} from "../types.js";
 import {computeStartSlotAtEpoch} from "./epoch.js";
@@ -57,27 +57,31 @@ export function computeProposerIndex(
     throw Error("Validator indices must not be empty");
   }
 
+  const isPostElectra = fork >= ForkSeq.electra;
+
   // TODO: Inline outside this function
-  const MAX_RANDOM_BYTE = 2 ** 8 - 1;
-  const MAX_EFFECTIVE_BALANCE_INCREMENT =
-    fork >= ForkSeq.electra
-      ? MAX_EFFECTIVE_BALANCE_ELECTRA / EFFECTIVE_BALANCE_INCREMENT
-      : MAX_EFFECTIVE_BALANCE / EFFECTIVE_BALANCE_INCREMENT;
+  const MAX_RANDOM_VALUE = isPostElectra ? 2 ** 16 - 1 : 2 ** 8 - 1;
+  const MAX_EFFECTIVE_BALANCE_INCREMENT = isPostElectra
+    ? MAX_EFFECTIVE_BALANCE_ELECTRA / EFFECTIVE_BALANCE_INCREMENT
+    : MAX_EFFECTIVE_BALANCE / EFFECTIVE_BALANCE_INCREMENT;
 
   let i = 0;
   /* eslint-disable-next-line no-constant-condition */
   while (true) {
     const candidateIndex = indices[computeShuffledIndex(i % indices.length, indices.length, seed)];
-    const randByte = digest(
-      Buffer.concat([
-        seed,
-        //
-        intToBytes(Math.floor(i / 32), 8, "le"),
-      ])
-    )[i % 32];
+
+    let randValue: number;
+
+    if (isPostElectra) {
+      const randByte = digest(Buffer.concat([seed, intToBytes(Math.floor(i / 16), 8, "le")]));
+      const offset = (i % 16) * 2;
+      randValue = bytesToInt(randByte.subarray(offset, offset + 2));
+    } else {
+      randValue = digest(Buffer.concat([seed, intToBytes(Math.floor(i / 32), 8, "le")]))[i % 32];
+    }
 
     const effectiveBalanceIncrement = effectiveBalanceIncrements[candidateIndex];
-    if (effectiveBalanceIncrement * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE_INCREMENT * randByte) {
+    if (effectiveBalanceIncrement * MAX_RANDOM_VALUE >= MAX_EFFECTIVE_BALANCE_INCREMENT * randValue) {
       return candidateIndex;
     }
     i += 1;
@@ -100,12 +104,12 @@ export function getNextSyncCommitteeIndices(
   activeValidatorIndices: ArrayLike<ValidatorIndex>,
   effectiveBalanceIncrements: EffectiveBalanceIncrements
 ): ValidatorIndex[] {
+  const isPostElectra = fork >= ForkSeq.electra;
   // TODO: Bechmark if it's necessary to inline outside of this function
-  const MAX_RANDOM_BYTE = 2 ** 8 - 1;
-  const MAX_EFFECTIVE_BALANCE_INCREMENT =
-    fork >= ForkSeq.electra
-      ? MAX_EFFECTIVE_BALANCE_ELECTRA / EFFECTIVE_BALANCE_INCREMENT
-      : MAX_EFFECTIVE_BALANCE / EFFECTIVE_BALANCE_INCREMENT;
+  const MAX_RANDOM_BYTE = isPostElectra ? 2 ** 16 - 1 : 2 ** 8 - 1;
+  const MAX_EFFECTIVE_BALANCE_INCREMENT = isPostElectra
+    ? MAX_EFFECTIVE_BALANCE_ELECTRA / EFFECTIVE_BALANCE_INCREMENT
+    : MAX_EFFECTIVE_BALANCE / EFFECTIVE_BALANCE_INCREMENT;
 
   const epoch = computeEpochAtSlot(state.slot) + 1;
 
@@ -116,16 +120,23 @@ export function getNextSyncCommitteeIndices(
   while (syncCommitteeIndices.length < SYNC_COMMITTEE_SIZE) {
     const shuffledIndex = computeShuffledIndex(i % activeValidatorCount, activeValidatorCount, seed);
     const candidateIndex = activeValidatorIndices[shuffledIndex];
-    const randByte = digest(
-      Buffer.concat([
-        seed,
-        //
-        intToBytes(Math.floor(i / 32), 8, "le"),
-      ])
-    )[i % 32];
+    let randValue: number;
+    if (isPostElectra) {
+      const randByte = digest(Buffer.concat([seed, intToBytes(Math.floor(i / 16), 8, "le")]));
+      const offset = (i % 16) * 2;
+      randValue = bytesToInt(randByte.subarray(offset, offset + 2));
+    } else {
+      randValue = digest(
+        Buffer.concat([
+          seed,
+          //
+          intToBytes(Math.floor(i / 32), 8, "le"),
+        ])
+      )[i % 32];
+    }
 
     const effectiveBalanceIncrement = effectiveBalanceIncrements[candidateIndex];
-    if (effectiveBalanceIncrement * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE_INCREMENT * randByte) {
+    if (effectiveBalanceIncrement * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE_INCREMENT * randValue) {
       syncCommitteeIndices.push(candidateIndex);
     }
 
