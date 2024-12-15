@@ -5,7 +5,7 @@ import {
   ForkName,
   SLOTS_PER_EPOCH,
 } from "@lodestar/params";
-import {Epoch, Slot, ssz} from "@lodestar/types";
+import {Epoch, Slot, SubnetID, ssz} from "@lodestar/types";
 import {Logger, MapDef} from "@lodestar/utils";
 import {ClockEvent, IClock} from "../../util/clock.js";
 import {NetworkCoreMetrics} from "../core/metrics.js";
@@ -126,7 +126,7 @@ export class AttnetsService implements IAttnetsService {
   /**
    * Check if a subscription is still active before handling a gossip object
    */
-  shouldProcess(subnet: number, slot: Slot): boolean {
+  shouldProcess(subnet: SubnetID, slot: Slot): boolean {
     if (!this.aggregatorSlotSubnet.has(slot)) {
       return false;
     }

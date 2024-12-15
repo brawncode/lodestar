@@ -146,7 +146,7 @@ function aggregateSignatureInto(
  * Format `signature` into an efficient `contribution` to add more signatures in with aggregateSignatureInto()
  */
 function signatureToAggregate(
-  subnet: number,
+  subnet: Subnet,
   signature: altair.SyncCommitteeMessage,
   indexInSubcommittee: number
 ): ContributionFast {
