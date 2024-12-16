@@ -48,9 +48,11 @@ export function processExecutionPayload(
   }
 
   if (fork >= ForkSeq.deneb) {
+    const maxBlobsPerBlock =
+      fork >= ForkSeq.electra ? state.config.MAX_BLOBS_PER_BLOCK_ELECTRA : state.config.MAX_BLOBS_PER_BLOCK;
     const blobKzgCommitmentsLen = (body as deneb.BeaconBlockBody).blobKzgCommitments?.length ?? 0;
-    if (blobKzgCommitmentsLen > state.config.MAX_BLOBS_PER_BLOCK) {
-      throw Error(`blobKzgCommitmentsLen exceeds limit=${state.config.MAX_BLOBS_PER_BLOCK}`);
+    if (blobKzgCommitmentsLen > maxBlobsPerBlock) {
+      throw Error(`blobKzgCommitmentsLen exceeds limit=${maxBlobsPerBlock}`);
     }
   }
 
