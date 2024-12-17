@@ -1,9 +1,10 @@
+import {ForkName} from "@lodestar/params";
 import {ProtocolHandler} from "@lodestar/reqresp";
 import {ssz} from "@lodestar/types";
 import {IBeaconChain} from "../../../chain/index.js";
 import {IBeaconDb} from "../../../db/index.js";
 import {BlobSidecarsByRootRequestType} from "../../../util/types.js";
-import {GetReqRespHandlerFn, ReqRespMethod} from "../types.js";
+import {GetReqRespHandlerFn, ReqRespMethod, Version} from "../types.js";
 import {onBeaconBlocksByRange} from "./beaconBlocksByRange.js";
 import {onBeaconBlocksByRoot} from "./beaconBlocksByRoot.js";
 import {onBlobSidecarsByRange} from "./blobSidecarsByRange.js";
@@ -38,8 +39,9 @@ export function getReqRespHandlers({db, chain}: {db: IBeaconDb; chain: IBeaconCh
       return onBeaconBlocksByRoot(body, chain, db);
     },
     [ReqRespMethod.BlobSidecarsByRoot]: (req) => {
+      const fork = req.version === Version.V2 ? ForkName.electra : ForkName.deneb;
       const body = BlobSidecarsByRootRequestType(fork, chain.config).deserialize(req.data);
-      return onBlobSidecarsByRoot(body, chain, db)
+      return onBlobSidecarsByRoot(body, chain, db);
     },
     [ReqRespMethod.BlobSidecarsByRange]: (req) => {
       const body = ssz.deneb.BlobSidecarsByRangeRequest.deserialize(req.data);

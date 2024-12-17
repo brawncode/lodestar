@@ -70,6 +70,7 @@ type ResponseBodyByMethod = {
 };
 
 /** Request SSZ type for each method and ForkName */
+// TODO Electra: Make requestSszTypeByMethod fork-aware so we can get the correct BlobSidecarsByRootRequestType
 export const requestSszTypeByMethod: (config: ChainConfig) => {
   [K in ReqRespMethod]: RequestBodyByMethod[K] extends null ? null : Type<RequestBodyByMethod[K]>;
 } = (config) => ({
@@ -80,7 +81,7 @@ export const requestSszTypeByMethod: (config: ChainConfig) => {
   [ReqRespMethod.BeaconBlocksByRange]: ssz.phase0.BeaconBlocksByRangeRequest,
   [ReqRespMethod.BeaconBlocksByRoot]: ssz.phase0.BeaconBlocksByRootRequest,
   [ReqRespMethod.BlobSidecarsByRange]: ssz.deneb.BlobSidecarsByRangeRequest,
-  [ReqRespMethod.BlobSidecarsByRoot]: BlobSidecarsByRootRequestType(fork, config),
+  [ReqRespMethod.BlobSidecarsByRoot]: BlobSidecarsByRootRequestType(ForkName.deneb, config),
   [ReqRespMethod.LightClientBootstrap]: ssz.Root,
   [ReqRespMethod.LightClientUpdatesByRange]: ssz.altair.LightClientUpdatesByRange,
   [ReqRespMethod.LightClientFinalityUpdate]: null,

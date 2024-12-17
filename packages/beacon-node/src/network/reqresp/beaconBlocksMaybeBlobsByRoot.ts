@@ -228,7 +228,7 @@ export async function unavailableBeaconBlobsByRoot(
   }
 
   if (networkReqIdentifiers.length > 0) {
-    networkResBlobSidecars = await network.sendBlobSidecarsByRoot(peerId, networkReqIdentifiers); // TODO
+    networkResBlobSidecars = await network.sendBlobSidecarsByRoot(peerId, networkReqIdentifiers);
     metrics?.blockInputFetchStats.dataPromiseBlobsFinallyAvailableFromNetwork.inc(networkResBlobSidecars.length);
     if (blockTriedBefore) {
       metrics?.blockInputFetchStats.dataPromiseBlobsRetriedAvailableFromNetwork.inc(networkResBlobSidecars.length);
