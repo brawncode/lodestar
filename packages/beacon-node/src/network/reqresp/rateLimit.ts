@@ -39,7 +39,7 @@ export const rateLimitQuotas: (config: ChainConfig) => Record<ReqRespMethod, Inb
   },
   [ReqRespMethod.BlobSidecarsByRoot]: {
     // Rationale: quota of BeaconBlocksByRoot * MAX_BLOBS_PER_BLOCK
-    byPeer: {quota: config.MAX_REQUEST_BLOB_SIDECARS, quotaTimeMs: 10_000},
+    byPeer: {quota: config.MAX_REQUEST_BLOB_SIDECARS, quotaTimeMs: 10_000}, // TODO 
     getRequestCount: getRequestCountFn(config, ReqRespMethod.BlobSidecarsByRoot, (req) => req.length),
   },
   [ReqRespMethod.LightClientBootstrap]: {

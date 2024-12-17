@@ -38,8 +38,8 @@ export function getReqRespHandlers({db, chain}: {db: IBeaconDb; chain: IBeaconCh
       return onBeaconBlocksByRoot(body, chain, db);
     },
     [ReqRespMethod.BlobSidecarsByRoot]: (req) => {
-      const body = BlobSidecarsByRootRequestType(chain.config).deserialize(req.data);
-      return onBlobSidecarsByRoot(body, chain, db);
+      const body = BlobSidecarsByRootRequestType(fork, chain.config).deserialize(req.data);
+      return onBlobSidecarsByRoot(body, chain, db)
     },
     [ReqRespMethod.BlobSidecarsByRange]: (req) => {
       const body = ssz.deneb.BlobSidecarsByRangeRequest.deserialize(req.data);

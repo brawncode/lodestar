@@ -511,7 +511,7 @@ export class Network implements INetwork {
 
   async sendBlobSidecarsByRoot(peerId: PeerIdStr, request: BlobSidecarsByRootRequest): Promise<deneb.BlobSidecar[]> {
     return collectMaxResponseTyped(
-      this.sendReqRespRequest(peerId, ReqRespMethod.BlobSidecarsByRoot, [Version.V1], request),
+      this.sendReqRespRequest(peerId, ReqRespMethod.BlobSidecarsByRoot, [Version.V1], request), // TODO
       request.length,
       responseSszTypeByMethod[ReqRespMethod.BlobSidecarsByRoot]
     );
