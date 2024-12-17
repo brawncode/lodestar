@@ -52,7 +52,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
 
   let allBlobSidecars: deneb.BlobSidecar[];
   if (blobIdentifiers.length > 0) {
-    allBlobSidecars = await network.sendBlobSidecarsByRoot(peerId, blobIdentifiers); // TODO
+    allBlobSidecars = await network.sendBlobSidecarsByRoot(peerId, blobIdentifiers);
   } else {
     allBlobSidecars = [];
   }
