@@ -536,7 +536,8 @@ export class Network implements INetwork {
     versions: number[],
     request: Req
   ): AsyncIterable<ResponseIncoming> {
-    const requestType = requestSszTypeByMethod(this.config)[method];
+    const fork = this.config.getForkName(this.clock.currentSlot);
+    const requestType = requestSszTypeByMethod(this.config, fork)[method];
     const requestData = requestType ? requestType.serialize(request as never) : new Uint8Array();
 
     // ReqResp outgoing request, emit from main thread to worker
