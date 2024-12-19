@@ -230,7 +230,10 @@ export function getCoreTopicsAtFork(
 
   // After Deneb also track blob_sidecar_{subnet_id}
   if (ForkSeq[fork] >= ForkSeq.deneb) {
-    for (let subnet = 0; subnet < config.BLOB_SIDECAR_SUBNET_COUNT; subnet++) {
+    const subnetCount =
+      ForkSeq[fork] >= ForkSeq.electra ? config.BLOB_SIDECAR_SUBNET_COUNT_ELECTRA : config.BLOB_SIDECAR_SUBNET_COUNT;
+
+    for (let subnet = 0; subnet < subnetCount; subnet++) {
       topics.push({type: GossipType.blob_sidecar, subnet});
     }
   }
