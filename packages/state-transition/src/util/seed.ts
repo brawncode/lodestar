@@ -140,7 +140,6 @@ export function getNextSyncCommitteeIndices(
     const MAX_EFFECTIVE_BALANCE_INCREMENT = MAX_EFFECTIVE_BALANCE / EFFECTIVE_BALANCE_INCREMENT;
 
     const epoch = computeEpochAtSlot(state.slot) + 1;
-
     const activeValidatorCount = activeValidatorIndices.length;
     const seed = getSeed(state, epoch, DOMAIN_SYNC_COMMITTEE);
 
