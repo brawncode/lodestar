@@ -1,5 +1,10 @@
 import {ChainConfig} from "@lodestar/config";
-import {KZG_COMMITMENT_INCLUSION_PROOF_DEPTH, KZG_COMMITMENT_SUBTREE_INDEX0} from "@lodestar/params";
+import {
+  ForkName,
+  isForkPostElectra,
+  KZG_COMMITMENT_INCLUSION_PROOF_DEPTH,
+  KZG_COMMITMENT_SUBTREE_INDEX0,
+} from "@lodestar/params";
 import {computeStartSlotAtEpoch, getBlockHeaderProposerSignatureSet} from "@lodestar/state-transition";
 import {BlobIndex, Root, Slot, deneb, ssz} from "@lodestar/types";
 import {toRootHex, verifyMerkleBranch} from "@lodestar/utils";
@@ -14,7 +19,8 @@ import {RegenCaller} from "../regen/index.js";
 export async function validateGossipBlobSidecar(
   chain: IBeaconChain,
   blobSidecar: deneb.BlobSidecar,
-  subnet: number
+  subnet: number,
+  fork: ForkName
 ): Promise<void> {
   const blobSlot = blobSidecar.signedBlockHeader.message.slot;
 
@@ -28,7 +34,7 @@ export async function validateGossipBlobSidecar(
   }
 
   // [REJECT] The sidecar is for the correct subnet -- i.e. `compute_subnet_for_blob_sidecar(sidecar.index) == subnet_id`.
-  if (computeSubnetForBlobSidecar(blobSidecar.index, chain.config) !== subnet) {
+  if (computeSubnetForBlobSidecar(blobSidecar.index, chain.config, fork) !== subnet) {
     throw new BlobSidecarGossipError(GossipAction.REJECT, {
       code: BlobSidecarErrorCode.INVALID_INDEX,
       blobIdx: blobSidecar.index,
@@ -236,6 +242,8 @@ function validateInclusionProof(blobSidecar: deneb.BlobSidecar): boolean {
   );
 }
 
-function computeSubnetForBlobSidecar(blobIndex: BlobIndex, config: ChainConfig): number {
-  return blobIndex % config.BLOB_SIDECAR_SUBNET_COUNT;
+function computeSubnetForBlobSidecar(blobIndex: BlobIndex, config: ChainConfig, fork: ForkName): number {
+  return (
+    blobIndex % (isForkPostElectra(fork) ? config.BLOB_SIDECAR_SUBNET_COUNT_ELECTRA : config.BLOB_SIDECAR_SUBNET_COUNT)
+  );
 }
