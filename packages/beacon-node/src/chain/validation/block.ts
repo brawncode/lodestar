@@ -120,7 +120,7 @@ export async function validateGossipBlock(
       throw new BlockGossipError(GossipAction.REJECT, {
         code: BlockErrorCode.TOO_MANY_KZG_COMMITMENTS,
         blobKzgCommitmentsLen,
-        commitmentLimit: chain.config.MAX_BLOBS_PER_BLOCK,
+        commitmentLimit: maxBlobsPerBlock,
       });
     }
   }
