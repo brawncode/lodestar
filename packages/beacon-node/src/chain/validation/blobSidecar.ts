@@ -25,11 +25,14 @@ export async function validateGossipBlobSidecar(
   const blobSlot = blobSidecar.signedBlockHeader.message.slot;
 
   // [REJECT] The sidecar's index is consistent with `MAX_BLOBS_PER_BLOCK` -- i.e. `blob_sidecar.index < MAX_BLOBS_PER_BLOCK`.
-  if (blobSidecar.index >= chain.config.MAX_BLOBS_PER_BLOCK) {
+  const maxBlobsPerBlock = isForkPostElectra(fork)
+    ? chain.config.MAX_BLOBS_PER_BLOCK_ELECTRA
+    : chain.config.MAX_BLOBS_PER_BLOCK;
+  if (blobSidecar.index >= maxBlobsPerBlock) {
     throw new BlobSidecarGossipError(GossipAction.REJECT, {
       code: BlobSidecarErrorCode.INDEX_TOO_LARGE,
       blobIdx: blobSidecar.index,
-      maxBlobsPerBlock: chain.config.MAX_BLOBS_PER_BLOCK,
+      maxBlobsPerBlock,
     });
   }
 
