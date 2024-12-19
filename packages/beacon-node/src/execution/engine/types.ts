@@ -1,9 +1,12 @@
 import {
   BYTES_PER_FIELD_ELEMENT,
   BYTES_PER_LOGS_BLOOM,
+  CONSOLIDATION_REQUEST_TYPE,
+  DEPOSIT_REQUEST_TYPE,
   FIELD_ELEMENTS_PER_BLOB,
   ForkName,
   ForkSeq,
+  WITHDRAWAL_REQUEST_TYPE,
 } from "@lodestar/params";
 import {ExecutionPayload, ExecutionRequests, Root, Wei, bellatrix, capella, deneb, electra, ssz} from "@lodestar/types";
 import {BlobAndProof} from "@lodestar/types/deneb";
@@ -17,7 +20,14 @@ import {
   quantityToBigint,
   quantityToNum,
 } from "../../eth1/provider/utils.js";
-import {BlobsBundle, ExecutionPayloadStatus, PayloadAttributes, RequestType, VersionedHashes} from "./interface.js";
+import {
+  BlobsBundle,
+  ExecutionPayloadStatus,
+  ExecutionRequestType,
+  PayloadAttributes,
+  VersionedHashes,
+  isExecutionRequestType,
+} from "./interface.js";
 import {WithdrawalV1} from "./payloadIdCache.js";
 
 export type EngineApiRpcParamTypes = {
@@ -407,7 +417,7 @@ export function deserializeWithdrawal(serialized: WithdrawalRpc): capella.Withdr
 /**
  * Prepend a single-byte requestType to requestsBytes
  */
-function prefixRequests(requestsBytes: Uint8Array, requestType: RequestType): Uint8Array {
+function prefixRequests(requestsBytes: Uint8Array, requestType: ExecutionRequestType): Uint8Array {
   const prefixedRequests = new Uint8Array(1 + requestsBytes.length);
   prefixedRequests[0] = requestType;
   prefixedRequests.set(requestsBytes, 1);
@@ -417,7 +427,7 @@ function prefixRequests(requestsBytes: Uint8Array, requestType: RequestType): Ui
 
 function serializeDepositRequests(depositRequests: electra.DepositRequests): DepositRequestsRpc {
   const requestsBytes = ssz.electra.DepositRequests.serialize(depositRequests);
-  return bytesToData(prefixRequests(requestsBytes, RequestType.DEPOSIT_REQUEST_TYPE));
+  return bytesToData(prefixRequests(requestsBytes, DEPOSIT_REQUEST_TYPE));
 }
 
 function deserializeDepositRequests(serialized: DepositRequestsRpc): electra.DepositRequests {
@@ -426,7 +436,7 @@ function deserializeDepositRequests(serialized: DepositRequestsRpc): electra.Dep
 
 function serializeWithdrawalRequests(withdrawalRequests: electra.WithdrawalRequests): WithdrawalRequestsRpc {
   const requestsBytes = ssz.electra.WithdrawalRequests.serialize(withdrawalRequests);
-  return bytesToData(prefixRequests(requestsBytes, RequestType.WITHDRAWAL_REQUEST_TYPE));
+  return bytesToData(prefixRequests(requestsBytes, WITHDRAWAL_REQUEST_TYPE));
 }
 
 function deserializeWithdrawalRequests(serialized: WithdrawalRequestsRpc): electra.WithdrawalRequests {
@@ -437,7 +447,7 @@ function serializeConsolidationRequests(
   consolidationRequests: electra.ConsolidationRequests
 ): ConsolidationRequestsRpc {
   const requestsBytes = ssz.electra.ConsolidationRequests.serialize(consolidationRequests);
-  return bytesToData(prefixRequests(requestsBytes, RequestType.CONSOLIDATION_REQUEST_TYPE));
+  return bytesToData(prefixRequests(requestsBytes, CONSOLIDATION_REQUEST_TYPE));
 }
 
 function deserializeConsolidationRequests(serialized: ConsolidationRequestsRpc): electra.ConsolidationRequests {
@@ -478,11 +488,21 @@ export function deserializeExecutionRequests(serialized: ExecutionRequestsRpc): 
     return result;
   }
 
-  let prevRequestType: RequestType | undefined;
+  let prevRequestType: ExecutionRequestType | undefined;
 
-  for (const prefixedRequests of serialized) {
-    const currentRequestType = RequestType[prefixedRequests[0] as keyof typeof RequestType];
-    const requests = prefixedRequests.slice(1);
+  for (let prefixedRequests of serialized) {
+    // Slice out 0x so it is easier to extract request type
+    if (prefixedRequests.startsWith("0x")) {
+      prefixedRequests = prefixedRequests.slice(2);
+    }
+
+    const currentRequestType = Number(prefixedRequests.substring(0, 2));
+
+    if (!isExecutionRequestType(currentRequestType)) {
+      throw Error(`Invalid request type currentRequestType=${prefixedRequests.substring(0, 2)}`);
+    }
+
+    const requests = prefixedRequests.slice(2);
 
     if (prevRequestType !== undefined && prevRequestType >= currentRequestType) {
       throw Error(
@@ -491,15 +511,15 @@ export function deserializeExecutionRequests(serialized: ExecutionRequestsRpc): 
     }
 
     switch (currentRequestType) {
-      case RequestType.DEPOSIT_REQUEST_TYPE: {
+      case DEPOSIT_REQUEST_TYPE: {
         result.deposits = deserializeDepositRequests(requests);
         break;
       }
-      case RequestType.WITHDRAWAL_REQUEST_TYPE: {
+      case WITHDRAWAL_REQUEST_TYPE: {
         result.withdrawals = deserializeWithdrawalRequests(requests);
         break;
       }
-      case RequestType.CONSOLIDATION_REQUEST_TYPE: {
+      case CONSOLIDATION_REQUEST_TYPE: {
         result.consolidations = deserializeConsolidationRequests(requests);
         break;
       }
