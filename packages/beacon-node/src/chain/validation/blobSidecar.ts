@@ -1,9 +1,9 @@
 import {ChainConfig} from "@lodestar/config";
 import {
   ForkName,
-  isForkPostElectra,
   KZG_COMMITMENT_INCLUSION_PROOF_DEPTH,
   KZG_COMMITMENT_SUBTREE_INDEX0,
+  isForkPostElectra,
 } from "@lodestar/params";
 import {computeStartSlotAtEpoch, getBlockHeaderProposerSignatureSet} from "@lodestar/state-transition";
 import {BlobIndex, Root, Slot, deneb, ssz} from "@lodestar/types";
