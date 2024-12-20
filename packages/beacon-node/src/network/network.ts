@@ -2,7 +2,7 @@ import {PeerScoreStatsDump} from "@chainsafe/libp2p-gossipsub/score";
 import {PublishOpts} from "@chainsafe/libp2p-gossipsub/types";
 import {PeerId} from "@libp2p/interface";
 import {routes} from "@lodestar/api";
-import {BeaconConfig} from "@lodestar/config";
+import {BeaconConfig, getMaxBlobsPerBlock} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
 import {ForkName, ForkSeq, isForkPostElectra} from "@lodestar/params";
 import {ResponseIncoming} from "@lodestar/reqresp";
@@ -510,8 +510,7 @@ export class Network implements INetwork {
         request
       ),
       // request's count represent the slots, so the actual max count received could be slots * blobs per slot
-      request.count *
-        (isForkPostElectra(fork) ? this.config.MAX_BLOBS_PER_BLOCK_ELECTRA : this.config.MAX_BLOBS_PER_BLOCK),
+      request.count * getMaxBlobsPerBlock(fork, this.config),
       responseSszTypeByMethod[ReqRespMethod.BlobSidecarsByRange]
     );
   }

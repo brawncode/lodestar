@@ -1,4 +1,4 @@
-import {ChainForkConfig} from "@lodestar/config";
+import {ChainForkConfig, getMaxBlobsPerBlock} from "@lodestar/config";
 import {ForkName, isForkBlobs, isForkPostElectra} from "@lodestar/params";
 import {
   computeStartSlotAtEpoch,
@@ -113,9 +113,7 @@ export async function validateGossipBlock(
   // [REJECT] The length of KZG commitments is less than or equal to the limitation defined in Consensus Layer -- i.e. validate that len(body.signed_beacon_block.message.blob_kzg_commitments) <= MAX_BLOBS_PER_BLOCK
   if (isForkBlobs(fork)) {
     const blobKzgCommitmentsLen = (block as deneb.BeaconBlock).body.blobKzgCommitments.length;
-    const maxBlobsPerBlock = isForkPostElectra(fork)
-      ? chain.config.MAX_BLOBS_PER_BLOCK_ELECTRA
-      : chain.config.MAX_BLOBS_PER_BLOCK;
+    const maxBlobsPerBlock = getMaxBlobsPerBlock(fork, chain.config);
     if (blobKzgCommitmentsLen > maxBlobsPerBlock) {
       throw new BlockGossipError(GossipAction.REJECT, {
         code: BlockErrorCode.TOO_MANY_KZG_COMMITMENTS,
