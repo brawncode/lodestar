@@ -501,7 +501,7 @@ export class Network implements INetwork {
     peerId: PeerIdStr,
     request: deneb.BlobSidecarsByRangeRequest
   ): Promise<deneb.BlobSidecar[]> {
-    const fork = this.config.getForkName(this.clock.currentSlot);
+    const fork = this.config.getForkName(request.startSlot);
     return collectMaxResponseTyped(
       this.sendReqRespRequest(
         peerId,
