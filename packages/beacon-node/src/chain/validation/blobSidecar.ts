@@ -17,10 +17,10 @@ import {IBeaconChain} from "../interface.js";
 import {RegenCaller} from "../regen/index.js";
 
 export async function validateGossipBlobSidecar(
+  fork: ForkName,
   chain: IBeaconChain,
   blobSidecar: deneb.BlobSidecar,
-  subnet: number,
-  fork: ForkName
+  subnet: number
 ): Promise<void> {
   const blobSlot = blobSidecar.signedBlockHeader.message.slot;
 
@@ -35,7 +35,7 @@ export async function validateGossipBlobSidecar(
   }
 
   // [REJECT] The sidecar is for the correct subnet -- i.e. `compute_subnet_for_blob_sidecar(sidecar.index) == subnet_id`.
-  if (computeSubnetForBlobSidecar(blobSidecar.index, chain.config, fork) !== subnet) {
+  if (computeSubnetForBlobSidecar(fork, chain.config, blobSidecar.index) !== subnet) {
     throw new BlobSidecarGossipError(GossipAction.REJECT, {
       code: BlobSidecarErrorCode.INVALID_INDEX,
       blobIdx: blobSidecar.index,
@@ -243,6 +243,6 @@ function validateInclusionProof(blobSidecar: deneb.BlobSidecar): boolean {
   );
 }
 
-function computeSubnetForBlobSidecar(blobIndex: BlobIndex, config: ChainConfig, fork: ForkName): number {
+function computeSubnetForBlobSidecar(fork: ForkName, config: ChainConfig, blobIndex: BlobIndex): number {
   return blobIndex % getBlobSidecarSubnetCount(fork, config);
 }

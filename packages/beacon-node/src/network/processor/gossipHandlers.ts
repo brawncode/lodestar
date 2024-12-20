@@ -204,7 +204,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
     );
 
     try {
-      await validateGossipBlobSidecar(chain, blobSidecar, subnet, fork);
+      await validateGossipBlobSidecar(fork, chain, blobSidecar, subnet);
       const recvToValidation = Date.now() / 1000 - seenTimestampSec;
       const validationTime = recvToValidation - recvToValLatency;
 
