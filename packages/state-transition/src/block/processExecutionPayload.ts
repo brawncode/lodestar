@@ -19,7 +19,7 @@ export function processExecutionPayload(
   externalData: Omit<BlockExternalData, "dataAvailableStatus">
 ): void {
   const payload = getFullOrBlindedPayloadFromBody(body);
-  const forkName = ForkName[ForkSeq[fork] as keyof typeof ForkName];
+  const forkName = ForkName[ForkSeq[fork] as ForkName];
   // Verify consistency of the parent hash, block number, base fee per gas and gas limit
   // with respect to the previous execution payload header
   if (isMergeTransitionComplete(state)) {
